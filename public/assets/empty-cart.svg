@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Cart body -->
+    <path d="M30 35H90L82 75H38L30 35Z" stroke="#333333" stroke-width="3" stroke-linejoin="round"/>
+    <!-- Left wheel -->
+    <circle cx="45" cy="85" r="6" stroke="#333333" stroke-width="3"/>
+    <!-- Right wheel -->
+    <circle cx="75" cy="85" r="6" stroke="#333333" stroke-width="3"/>
+    <!-- Handle -->
+    <path d="M40 45L80 45" stroke="#333333" stroke-width="3" stroke-linecap="round"/>
+    <!-- Empty state cross -->
+    <path d="M50 55L70 65M70 55L50 65" stroke="#333333" stroke-width="3" stroke-linecap="round"/>
+</svg> 
