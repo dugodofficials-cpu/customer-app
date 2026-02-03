@@ -2,10 +2,11 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   async rewrites() {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.dugodofficial.com';
     return [
       {
         source: '/api/:path*',
-        destination: process.env.NEXT_PUBLIC_API_URL + '/:path*',
+        destination: `${apiUrl}/:path*`,
       },
     ];
   },
@@ -27,7 +28,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'dugod-media.s3.eu-north-1.amazonaws.com',
+        hostname: 'dugodofficial-media.s3.eu-north-1.amazonaws.com',
       },
       {
         protocol: 'https',
@@ -35,7 +36,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'dugod-public.s3.eu-north-1.amazonaws.com',
+        hostname: 'dugodofficial-public.s3.eu-north-1.amazonaws.com',
       },
       {
         protocol: 'http',
