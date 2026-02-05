@@ -26,10 +26,9 @@ export default function GoogleAuth() {
         logo_alignment="left"
         theme="filled_black"
         text="signin_with"
-        width="100%"
+        width={360}
         size="large"
         nonce={''}
-        login_uri={`${process.env.NEXT_PUBLIC_APP_URL}/api/auth/google`}
         onError={() => enqueueSnackbar('Login Failed', { variant: 'error' })}
       />
     </Box>
