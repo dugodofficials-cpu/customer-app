@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ROUTES } from '@/util/paths';
 import PaystackPop from '@paystack/inline-js';
+import CryptoPaymentForm from './crypto-payment-form';
 import { useUser } from '@/hooks/user';
 import { useGetOrder } from '@/hooks/order';
 import { useSnackbar } from 'notistack';
@@ -20,6 +21,7 @@ interface PaymentMethodProps {
 
 export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: PaymentMethodProps) {
   const [paymentMethod, setPaymentMethod] = useState('card');
+  const [showCryptoForm, setShowCryptoForm] = useState(false);
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
   const user = useUser();
@@ -31,6 +33,12 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
 
   const handleSubmit = (event: React.FormEvent, paymentMethod: string) => {
     event.preventDefault();
+    
+    if (paymentMethod === 'crypto') {
+      setShowCryptoForm(true);
+      return;
+    }
+
     const paystackInstance = new PaystackPop();
 
     const onSuccess = () => {
@@ -209,6 +217,52 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
                 }
               />
             </Box>
+            <Box
+              sx={{
+                backgroundColor: '#0C0C0C',
+                borderRadius: '0.75rem',
+                border: '1px solid rgba(103, 97, 97, 0.30)',
+                padding: 2,
+              }}
+            >
+              <FormControlLabel
+                value="crypto"
+                control={
+                  <Radio
+                    sx={{
+                      color: '#7B7B7B',
+                      '&.Mui-checked': {
+                        color: '#0B6201',
+                      },
+                    }}
+                  />
+                }
+                label={
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2,
+                    }}
+                  >
+                    <Image
+                      src="/assets/card-payment.svg"
+                      alt="Crypto Payment"
+                      width={32}
+                      height={32}
+                    />
+                    <Typography
+                      sx={{
+                        color: '#fff',
+                        fontFamily: 'Satoshi',
+                      }}
+                    >
+                      Crypto (BTC/USDT)
+                    </Typography>
+                  </Box>
+                }
+              />
+            </Box>
           </RadioGroup>
         </Box>
 
@@ -328,7 +382,7 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
         }}
       >
         <Button
-          onClick={() => onBack(hasPhysicalItems ? 1 : 0)}
+          onClick={() => (showCryptoForm ? setShowCryptoForm(false) : onBack(hasPhysicalItems ? 1 : 0))}
           sx={{
             order: { xs: 2, sm: 1 },
             backgroundColor: '#333',
@@ -342,26 +396,45 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
             },
           }}
         >
-          Back to {hasPhysicalItems ? 'Shipping Details' : 'Cart'}
+          {showCryptoForm ? 'Cancel' : `Back to ${hasPhysicalItems ? 'Shipping Details' : 'Cart'}`}
         </Button>
-        <Button
-          type="submit"
-          sx={{
-            order: { xs: 1, sm: 2 },
-            backgroundColor: '#0B6201',
-            color: '#FFF',
-            padding: '0.75rem 2rem',
-            borderRadius: '0.5rem',
-            fontFamily: 'ClashDisplay-Medium',
-            textTransform: 'none',
-            '&:hover': {
-              backgroundColor: 'rgba(42, 195, 24, 0.32)',
-            },
-          }}
-        >
-          Complete Order
-        </Button>
+        {!showCryptoForm && (
+          <Button
+            type="submit"
+            sx={{
+              order: { xs: 1, sm: 2 },
+              backgroundColor: '#0B6201',
+              color: '#FFF',
+              padding: '0.75rem 2rem',
+              borderRadius: '0.5rem',
+              fontFamily: 'ClashDisplay-Medium',
+              textTransform: 'none',
+              '&:hover': {
+                backgroundColor: 'rgba(42, 195, 24, 0.32)',
+              },
+            }}
+          >
+            Complete Order
+          </Button>
+        )}
       </Box>
+
+      {showCryptoForm && (
+        <Box sx={{ mt: 4, borderTop: '1px solid #333', pt: 4 }}>
+          <Typography variant="h6" sx={{ color: '#fff', mb: 2, fontFamily: 'ClashDisplay-Medium' }}>
+            Crypto Payment Details
+          </Typography>
+          <CryptoPaymentForm
+            orderId={orderId}
+            amount={order?.data.total || 0}
+            currency={order?.data.currency || 'NGN'}
+            onSuccess={() => {
+              updateCartStatus({ cartId: cart?.data._id || '', status: CartStatus.CHECKOUT_IN_PROGRESS });
+              onNext();
+            }}
+          />
+        </Box>
+      )}
     </Box>
   );
 }
