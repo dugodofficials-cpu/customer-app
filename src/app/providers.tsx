@@ -4,6 +4,8 @@ import ThemeRegistry from '@/providers/ThemeRegistry';
 import { SnackbarProvider } from 'notistack';
 import { CartProvider } from '@/providers/CartProvider';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import { PlayerProvider } from '@/context/player-context';
+import ProfessionalPlayer from '@/components/ui/professional-player';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -14,7 +16,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
             anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
             preventDuplicate
           >
-            <CartProvider>{children}</CartProvider>
+            <CartProvider>
+              <PlayerProvider>
+                {children}
+                <ProfessionalPlayer />
+              </PlayerProvider>
+            </CartProvider>
           </SnackbarProvider>
         </QueryProvider>
       </ThemeRegistry>

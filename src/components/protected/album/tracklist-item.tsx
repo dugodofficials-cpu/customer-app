@@ -3,11 +3,7 @@ import { useAddToCart, useCart } from '@/hooks/cart';
 import { Box, Button, Grid, Typography, Tooltip, CircularProgress } from '@mui/material';
 import Image from 'next/image';
 import { useState } from 'react';
-import AudioPlayer from '@/components/ui/audio-player';
-import { useGetUserOrders } from '@/hooks/order';
-import { Product, ProductType } from '@/lib/api/products';
-import { useUser } from '@/hooks/user';
-import { getSavedMediaUrl, useDownloadMedia } from '@/hooks/products';
+import { usePlayer } from '@/context/player-context';
 
 export default function TracklistItem({
   isLast,
@@ -28,7 +24,7 @@ export default function TracklistItem({
 }) {
   const { data: cartItems } = useCart();
   const { mutate: addToCart, isPending } = useAddToCart();
-  const [isPlaying, setIsPlaying] = useState(false);
+  const { currentTrack, isPlaying, playTrack } = usePlayer();
   const { user } = useUser();
   const { mutate: downloadMedia, isPending: isDownloading } = useDownloadMedia();
   const [downloadedMedia, setDownloadedMedia] = useState<string | null>(null);
@@ -75,16 +71,26 @@ export default function TracklistItem({
     } else {
       const savedMediaUrl = getSavedMediaUrl(id);
       if (savedMediaUrl) {
-        setDownloadedMedia(savedMediaUrl);
-        setIsPlaying(true);
+        playTrack({
+          id,
+          title,
+          artist: 'DuGod',
+          image,
+          audioUrl: savedMediaUrl,
+        });
         return;
       }
       downloadMedia(
         { id, isDownloaded: false },
         {
           onSuccess: (data) => {
-            setDownloadedMedia(data.data.url);
-            setIsPlaying(true);
+            playTrack({
+              id,
+              title,
+              artist: 'DuGod',
+              image,
+              audioUrl: data.data.url,
+            });
           },
         }
       );
@@ -179,68 +185,72 @@ export default function TracklistItem({
           justifyContent: { xs: 'flex-start', md: 'flex-end' },
         }}
       >
-        {isPlaying && !isDownloading ? (
-          <AudioPlayer audioUrl={downloadedMedia || url} onClose={() => setIsPlaying(false)} />
-        ) : (
-          <Tooltip
-            title={!url ? 'Purchase this track to unlock playback' : ''}
-            arrow
-            placement="top"
-            open={tooltipOpen}
-            onClose={handleTooltipClose}
-            onOpen={handleTooltipOpen}
-            enterTouchDelay={0}
-            leaveTouchDelay={5000}
-            PopperProps={{
-              sx: {
-                '& .MuiTooltip-tooltip': {
-                  bgcolor: 'rgba(0, 0, 0, 0.9)',
-                  color: '#fff',
-                  fontSize: '0.875rem',
-                  padding: '0.75rem 1rem',
-                  borderRadius: '0.5rem',
-                  maxWidth: '200px',
-                  textAlign: 'center',
-                },
-                '& .MuiTooltip-arrow': {
-                  color: 'rgba(0, 0, 0, 0.9)',
-                },
+        <Tooltip
+          title={!url ? 'Purchase this track to unlock playback' : ''}
+          arrow
+          placement="top"
+          open={tooltipOpen}
+          onClose={handleTooltipClose}
+          onOpen={handleTooltipOpen}
+          enterTouchDelay={0}
+          leaveTouchDelay={5000}
+          PopperProps={{
+            sx: {
+              '& .MuiTooltip-tooltip': {
+                bgcolor: 'rgba(0, 0, 0, 0.9)',
+                color: '#fff',
+                fontSize: '0.875rem',
+                padding: '0.75rem 1rem',
+                borderRadius: '0.5rem',
+                maxWidth: '200px',
+                textAlign: 'center',
               },
-            }}
+              '& .MuiTooltip-arrow': {
+                color: 'rgba(0, 0, 0, 0.9)',
+              },
+            },
+          }}
+        >
+          <Box
+            sx={{ width: { xs: '100%', md: 'auto' } }}
+            onClick={handleTooltipOpen}
+            onTouchStart={handleTooltipOpen}
           >
-            <Box
-              sx={{ width: { xs: '100%', md: 'auto' } }}
-              onClick={handleTooltipOpen}
-              onTouchStart={handleTooltipOpen}
+            <Button
+              onClick={() => handleMedia(_id)}
+              sx={{
+                display: 'flex',
+                padding: '0.25rem 0.5rem',
+                justifyContent: 'center',
+                alignItems: 'center',
+                width: { xs: '100%', md: '12.5rem' },
+                borderRadius: '0.25rem',
+                border: '0.4px solid #FFF',
+                background:
+                  currentTrack?.id === _id && isPlaying
+                    ? 'rgba(42, 195, 24, 0.2)'
+                    : 'rgba(255, 255, 255, 0.10)',
+                '&:active': {
+                  background: 'rgba(255, 255, 255, 0.15)',
+                },
+              }}
+              startIcon={
+                isDownloading ? (
+                  <CircularProgress size={24} />
+                ) : (
+                  <Image
+                    src={currentTrack?.id === _id && isPlaying ? '/assets/pause.svg' : '/assets/play.svg'}
+                    alt="play"
+                    width={24}
+                    height={24}
+                  />
+                )
+              }
             >
-              <Button
-                onClick={() => handleMedia(_id)}
-                sx={{
-                  display: 'flex',
-                  padding: '0.25rem 0.5rem',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  width: { xs: '100%', md: '12.5rem' },
-                  borderRadius: '0.25rem',
-                  border: '0.4px solid #FFF',
-                  background: 'rgba(255, 255, 255, 0.10)',
-                  '&:active': {
-                    background: 'rgba(255, 255, 255, 0.15)',
-                  },
-                }}
-                startIcon={
-                  isDownloading ? (
-                    <CircularProgress size={24} />
-                  ) : (
-                    <Image src="/assets/play.svg" alt="play" width={24} height={24} />
-                  )
-                }
-              >
-                {isDownloading ? '...' : 'Play'}
-              </Button>
-            </Box>
-          </Tooltip>
-        )}
+              {isDownloading ? '...' : currentTrack?.id === _id && isPlaying ? 'Playing' : 'Play'}
+            </Button>
+          </Box>
+        </Tooltip>
         {!isPurchased && (
           <Button
             onClick={handleAddToCart}
