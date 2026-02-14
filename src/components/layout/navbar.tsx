@@ -70,7 +70,6 @@ export default function Navbar({ trigger }: { trigger: boolean }) {
           <Image src={'/assets/cart.svg'} alt="Cart" width={40} height={40} />
         </Badge>
       ),
-      href: ROUTES.CART,
       onClick: openCart,
     },
     {
