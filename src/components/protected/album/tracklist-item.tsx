@@ -27,7 +27,6 @@ export default function TracklistItem({
   const { currentTrack, isPlaying, playTrack } = usePlayer();
   const { user } = useUser();
   const { mutate: downloadMedia, isPending: isDownloading } = useDownloadMedia();
-  const [downloadedMedia, setDownloadedMedia] = useState<string | null>(null);
   const { data: orders } = useGetUserOrders(user?._id || '', {
     page: 1,
     type: ProductType.DIGITAL,

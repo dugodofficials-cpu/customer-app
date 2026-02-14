@@ -6,7 +6,6 @@ import Image from 'next/image';
 import { usePlayer } from '@/context/player-context';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
-import CloseIcon from '@mui/icons-material/Close';
 
 export default function ProfessionalPlayer() {
   const { currentTrack, isPlaying, togglePlay, progress, duration, seek } = usePlayer();
