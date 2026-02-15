@@ -55,16 +55,6 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
       amount: amountInKobo,
       currency: 'NGN',
       reference: transactionReference,
-      onSuccess: (response: unknown) => {
-        console.log('Payment successful:', response);
-        onSuccess();
-      },
-      onCancel: () => {
-        enqueueSnackbar('Payment cancelled', { variant: 'info' });
-      },
-      onClose: () => {
-        enqueueSnackbar('Payment window closed', { variant: 'info' });
-      },
       metadata: {
         custom_fields: [
           {
@@ -88,6 +78,16 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
             value: order?.data.discount || 0,
           },
         ],
+      },
+      onSuccess: (response: unknown) => {
+        console.log('Payment successful:', response);
+        onSuccess();
+      },
+      onCancel: () => {
+        enqueueSnackbar('Payment cancelled', { variant: 'info' });
+      },
+      onClose: () => {
+        enqueueSnackbar('Payment window closed', { variant: 'info' });
       },
     };
 
