@@ -56,6 +56,11 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
       amount: amountInKobo,
       currency: 'NGN',
       reference: transactionReference,
+      onSuccess,
+      onError() {
+        enqueueSnackbar('Payment failed', { variant: 'error' });
+        router.push(`${ROUTES.PAYMENT_FAILED}?orderId=${orderId}`);
+      },
       metadata: {
         custom_fields: [
           {
@@ -79,15 +84,6 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
             value: order?.data.discount || 0,
           },
         ],
-      },
-      channels: [paymentMethod as 'card' | 'bank_transfer'],
-      key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '',
-      email: user.user?.email || '',
-      amount: (order?.data.total || 0) * 100,
-      onSuccess,
-      onError() {
-        enqueueSnackbar('Payment failed', { variant: 'error' });
-        router.push(`${ROUTES.PAYMENT_FAILED}?orderId=${orderId}`);
       },
     });
   };
