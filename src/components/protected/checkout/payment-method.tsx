@@ -48,19 +48,15 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
     const transactionReference = `ORDER-${order?.data.orderNumber || uuidv4().split('-')[0]}-${Date.now()}`;
     const amountInKobo = Math.round((order?.data.total || 0) * 100);
 
-    paystackInstance.newTransaction({
+    const paystackOptions: any = {
       key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '',
       email: user.user?.email || '',
       amount: amountInKobo,
       currency: 'NGN',
       reference: transactionReference,
-      label: `Order ${order?.data.orderNumber || ''}`,
       onSuccess,
       onCancel: () => {
         enqueueSnackbar('Payment cancelled', { variant: 'info' });
-      },
-      onClose: () => {
-        enqueueSnackbar('Payment window closed', { variant: 'info' });
       },
       onError: (error: unknown) => {
         console.error('Paystack error:', error);
@@ -90,7 +86,9 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
           },
         ],
       },
-    });
+    };
+
+    paystackInstance.newTransaction(paystackOptions);
   };
 
   if (!orderId) {
