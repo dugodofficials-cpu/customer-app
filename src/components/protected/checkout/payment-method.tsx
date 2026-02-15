@@ -55,7 +55,7 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
       amount: amountInKobo,
       currency: 'NGN',
       ref: transactionReference,
-      onSuccess: (response: any) => {
+      onSuccess: (response: unknown) => {
         console.log('Payment successful:', response);
         onSuccess();
       },
@@ -65,7 +65,7 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
       onClose: () => {
         enqueueSnackbar('Payment window closed', { variant: 'info' });
       },
-      callback: (response: any) => {
+      callback: (response: unknown) => {
         console.log('Payment callback:', response);
         onSuccess();
       },
