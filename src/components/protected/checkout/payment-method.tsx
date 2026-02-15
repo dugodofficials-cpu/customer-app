@@ -49,7 +49,7 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
     const amountInKobo = Math.round((order?.data.total || 0) * 100);
 
     paystackInstance.newTransaction({
-      publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '',
+      key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '',
       email: user.user?.email || '',
       amount: amountInKobo,
       currency: 'NGN',
