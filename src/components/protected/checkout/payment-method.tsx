@@ -56,10 +56,14 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
       amount: amountInKobo,
       currency: 'NGN',
       reference: transactionReference,
+      label: `Order ${order?.data.orderNumber || ''}`,
       onSuccess,
-      onError() {
-        enqueueSnackbar('Payment failed', { variant: 'error' });
-        router.push(`${ROUTES.PAYMENT_FAILED}?orderId=${orderId}`);
+      onCancel: () => {
+        enqueueSnackbar('Payment cancelled', { variant: 'info' });
+      },
+      onError: (error: any) => {
+        console.error('Paystack error:', error);
+        enqueueSnackbar('Payment initialization failed', { variant: 'error' });
       },
       metadata: {
         custom_fields: [
