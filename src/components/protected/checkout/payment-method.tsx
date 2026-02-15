@@ -68,7 +68,7 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
       return;
     }
 
-    const channels = paymentMethod === 'bank_transfer' ? ['bank_transfer'] : ['card'];
+    const channels = paymentMethod === 'bank_transfer' ? ['bank_transfer'] : undefined;
 
     console.log('Paystack init params:', {
       keyPreview: `${key.slice(0, 6)}...${key.slice(-4)}`,
@@ -76,7 +76,7 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
       amountInKobo,
       currency: 'NGN',
       reference: transactionReference,
-      channels,
+      channels: channels || '(auto)',
     });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -86,7 +86,7 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
       amount: amountInKobo,
       currency: 'NGN',
       reference: transactionReference,
-      channels,
+      ...(channels ? { channels } : {}),
       onSuccess: (response: unknown) => {
         console.log('Paystack success:', response);
         onSuccess();
