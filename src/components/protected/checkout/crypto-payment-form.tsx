@@ -102,9 +102,15 @@ export default function CryptoPaymentForm({ orderId, amount, currency, onSuccess
 
       enqueueSnackbar('Transaction submitted for verification!', { variant: 'success' });
       onSuccess();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Crypto submission error:', error);
-      enqueueSnackbar(error.response?.data?.message || 'Failed to submit transaction', { variant: 'error' });
+      let errorMessage = 'Failed to submit transaction';
+      if (axios.isAxiosError(error)) {
+        errorMessage = error.response?.data?.message || errorMessage;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      enqueueSnackbar(errorMessage, { variant: 'error' });
     } finally {
       setIsSubmitting(false);
     }
