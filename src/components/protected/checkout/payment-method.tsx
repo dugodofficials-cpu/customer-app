@@ -51,7 +51,7 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
     const amountInKobo = Math.round((order?.data.total || 0) * 100);
 
     paystackInstance.newTransaction({
-      key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '',
+      publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '',
       email: user.user?.email || '',
       amount: amountInKobo,
       currency: 'NGN',
@@ -60,6 +60,9 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
       onSuccess,
       onCancel: () => {
         enqueueSnackbar('Payment cancelled', { variant: 'info' });
+      },
+      onClose: () => {
+        enqueueSnackbar('Payment window closed', { variant: 'info' });
       },
       onError: (error: any) => {
         console.error('Paystack error:', error);
