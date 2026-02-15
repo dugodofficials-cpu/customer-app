@@ -50,11 +50,11 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const paystackOptions: any = {
-      publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '',
+      key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '',
       email: user.user?.email || '',
       amount: amountInKobo,
       currency: 'NGN',
-      ref: transactionReference,
+      reference: transactionReference,
       onSuccess: (response: unknown) => {
         console.log('Payment successful:', response);
         onSuccess();
@@ -64,10 +64,6 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
       },
       onClose: () => {
         enqueueSnackbar('Payment window closed', { variant: 'info' });
-      },
-      callback: (response: unknown) => {
-        console.log('Payment callback:', response);
-        onSuccess();
       },
       metadata: {
         custom_fields: [
