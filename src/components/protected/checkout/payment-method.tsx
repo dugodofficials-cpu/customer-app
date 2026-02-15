@@ -48,8 +48,13 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
     };
 
     const transactionReference = `ORDER-${order?.data.orderNumber || uuidv4().split('-')[0]}-${Date.now()}`;
+    const amountInKobo = Math.round((order?.data.total || 0) * 100);
 
     paystackInstance.newTransaction({
+      key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '',
+      email: user.user?.email || '',
+      amount: amountInKobo,
+      currency: 'NGN',
       reference: transactionReference,
       metadata: {
         custom_fields: [
