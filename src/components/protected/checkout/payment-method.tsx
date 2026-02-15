@@ -46,48 +46,53 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
     };
 
     const transactionReference = `ORDER-${order?.data.orderNumber || uuidv4().split('-')[0]}-${Date.now()}`;
+    const key = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '';
+    const email = user.user?.email || '';
     const amountInKobo = Math.round((order?.data.total || 0) * 100);
+
+    if (!key || !key.startsWith('pk_')) {
+      console.error('Paystack init blocked: invalid/missing public key', { keyPreview: key ? `${key.slice(0, 6)}...` : '' });
+      enqueueSnackbar('Paystack key is missing. Please contact support.', { variant: 'error' });
+      return;
+    }
+
+    if (!email || !email.includes('@')) {
+      console.error('Paystack init blocked: invalid/missing email', { email });
+      enqueueSnackbar('Please login again to continue payment.', { variant: 'error' });
+      return;
+    }
+
+    if (!Number.isFinite(amountInKobo) || amountInKobo <= 0) {
+      console.error('Paystack init blocked: invalid amount', { total: order?.data.total, amountInKobo });
+      enqueueSnackbar('Invalid order amount. Please refresh and try again.', { variant: 'error' });
+      return;
+    }
+
+    const channels = paymentMethod === 'bank_transfer' ? ['bank_transfer'] : ['card'];
+
+    console.log('Paystack init params:', {
+      keyPreview: `${key.slice(0, 6)}...${key.slice(-4)}`,
+      email,
+      amountInKobo,
+      currency: 'NGN',
+      reference: transactionReference,
+      channels,
+    });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const paystackOptions: any = {
-      key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '',
-      email: user.user?.email || '',
+      key,
+      email,
       amount: amountInKobo,
       currency: 'NGN',
       reference: transactionReference,
-      metadata: {
-        custom_fields: [
-          {
-            display_name: 'Order Number',
-            variable_name: 'order_number',
-            value: order?.data.orderNumber || '',
-          },
-          {
-            display_name: 'Cart ID',
-            variable_name: 'cart_id',
-            value: cart?.data._id || '',
-          },
-          {
-            display_name: 'Order ID',
-            variable_name: 'order_id',
-            value: orderId || '',
-          },
-          {
-            display_name: 'Discount',
-            variable_name: 'discount',
-            value: order?.data.discount || 0,
-          },
-        ],
-      },
+      channels,
       onSuccess: (response: unknown) => {
-        console.log('Payment successful:', response);
+        console.log('Paystack success:', response);
         onSuccess();
       },
       onCancel: () => {
         enqueueSnackbar('Payment cancelled', { variant: 'info' });
-      },
-      onClose: () => {
-        enqueueSnackbar('Payment window closed', { variant: 'info' });
       },
     };
 
