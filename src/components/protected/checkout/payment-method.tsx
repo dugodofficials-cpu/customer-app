@@ -8,6 +8,7 @@ import { ROUTES } from '@/util/paths';
 import PaystackPop from '@paystack/inline-js';
 import CryptoPaymentForm from './crypto-payment-form';
 import { useUser } from '@/hooks/user';
+import { v4 as uuidv4 } from 'uuid';
 import { useGetOrder } from '@/hooks/order';
 import { useSnackbar } from 'notistack';
 import { useCart, useUpdateCartStatus } from '@/hooks/cart';
@@ -45,7 +46,11 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
       updateCartStatus({ cartId: cart?.data._id || '', status: CartStatus.CHECKOUT_IN_PROGRESS });
       onNext();
     };
+
+    const transactionReference = `ORDER-${order?.data.orderNumber || uuidv4().split('-')[0]}-${Date.now()}`;
+
     paystackInstance.newTransaction({
+      reference: transactionReference,
       metadata: {
         custom_fields: [
           {
