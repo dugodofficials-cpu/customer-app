@@ -82,6 +82,7 @@ export interface Order {
   notes?: string;
   isGift?: boolean;
   giftMessage?: string;
+  currency?: string;
 
   createdAt?: Date;
   updatedAt?: Date;
