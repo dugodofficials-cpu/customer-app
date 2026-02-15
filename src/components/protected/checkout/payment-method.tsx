@@ -3,8 +3,7 @@
 import { Box, Button, FormControlLabel, Radio, RadioGroup, Typography } from '@mui/material';
 import { useState } from 'react';
 import Image from 'next/image';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { ROUTES } from '@/util/paths';
+import { useSearchParams } from 'next/navigation';
 import PaystackPop from '@paystack/inline-js';
 import CryptoPaymentForm from './crypto-payment-form';
 import { useUser } from '@/hooks/user';
@@ -27,7 +26,6 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
   const orderId = searchParams.get('orderId');
   const user = useUser();
   const { data: order } = useGetOrder(orderId || '');
-  const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
   const { mutate: updateCartStatus } = useUpdateCartStatus();
   const { data: cart } = useCart();
@@ -64,7 +62,7 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
       onClose: () => {
         enqueueSnackbar('Payment window closed', { variant: 'info' });
       },
-      onError: (error: any) => {
+      onError: (error: unknown) => {
         console.error('Paystack error:', error);
         enqueueSnackbar('Payment initialization failed', { variant: 'error' });
       },
