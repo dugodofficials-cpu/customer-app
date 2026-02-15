@@ -1,10 +1,30 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Box, Typography, TextField, Button, CircularProgress, Alert } from '@mui/material';
+import { Box, Typography, TextField, Button, CircularProgress, Alert, MenuItem, Select, FormControl, InputLabel } from '@mui/material';
 import { useSnackbar } from 'notistack';
 import axios from 'axios';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+
+interface CryptoNetwork {
+  name: string;
+  coin: string;
+  address: string;
+  networkName: string;
+}
+
+const CRYPTO_NETWORKS: CryptoNetwork[] = [
+  { name: 'Ethereum', coin: 'ETH', networkName: 'ERC20', address: '0x47548DD6C4Ec984ADf7a53a7c51EA0D38834BD3F' },
+  { name: 'Bitcoin', coin: 'BTC', networkName: 'Native SegWit', address: 'bc1qq9luswn06crznjej90pmgdxdv2c963u9hfjf2u' },
+  { name: 'Solana', coin: 'SOL', networkName: 'Solana', address: '9mAs57DBZfDNuniq3PiqGvkW6YuBKKmtBrJTHueBKd4y' },
+  { name: 'Tron', coin: 'TRX/USDT', networkName: 'TRC20', address: 'TQywuv16Wn49BEkKRoELtnEVevFgk6MLkw' },
+  { name: 'Linea', coin: 'ETH', networkName: 'Linea', address: '0x47548DD6C4Ec984ADf7a53a7c51EA0D38834BD3F' },
+  { name: 'Arbitrum', coin: 'ETH', networkName: 'Arbitrum One', address: '0x47548DD6C4Ec984ADf7a53a7c51EA0D38834BD3F' },
+  { name: 'BNB Chain', coin: 'BNB/USDT', networkName: 'BEP20', address: '0x47548DD6C4Ec984ADf7a53a7c51EA0D38834BD3F' },
+  { name: 'Base', coin: 'ETH', networkName: 'Base', address: '0x47548DD6C4Ec984ADf7a53a7c51EA0D38834BD3F' },
+  { name: 'Optimism', coin: 'ETH', networkName: 'OP Mainnet', address: '0x47548DD6C4Ec984ADf7a53a7c51EA0D38834BD3F' },
+  { name: 'Polygon', coin: 'MATIC', networkName: 'Polygon POS', address: '0x47548DD6C4Ec984ADf7a53a7c51EA0D38834BD3F' },
+];
 
 interface CryptoPaymentFormProps {
   orderId: string;
@@ -14,13 +34,10 @@ interface CryptoPaymentFormProps {
 }
 
 export default function CryptoPaymentForm({ orderId, amount, currency, onSuccess }: CryptoPaymentFormProps) {
+  const [selectedNetwork, setSelectedNetwork] = useState<CryptoNetwork>(CRYPTO_NETWORKS[0]);
   const [txid, setTxid] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
-
-  // In a real app, these would come from an API or config
-  const walletAddress = process.env.NEXT_PUBLIC_CRYPTO_WALLET_ADDRESS || 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
-  const cryptoAmount = amount; // Simple 1:1 for now, usually needs conversion
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -36,17 +53,16 @@ export default function CryptoPaymentForm({ orderId, amount, currency, onSuccess
 
     setIsSubmitting(true);
     try {
-      // First, we need to create/get the payment record for this order
-      // Assuming there's an endpoint to initiate a crypto payment or it's created during order creation
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.dugodofficial.com';
-      
-      // Step 1: Submit the hash
-      // Note: We need the payment ID. For now, assuming we can find it by orderId or the backend handles it.
-      // If the backend requires paymentId, we'd fetch it first.
       
       await axios.post(`${apiUrl}/payments/submit-crypto-hash-by-order`, {
         orderId,
-        txid: txid.trim()
+        txid: txid.trim(),
+        metadata: {
+          network: selectedNetwork.name,
+          chain: selectedNetwork.networkName,
+          coin: selectedNetwork.coin
+        }
       }, {
         withCredentials: true
       });
@@ -63,19 +79,52 @@ export default function CryptoPaymentForm({ orderId, amount, currency, onSuccess
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 2 }}>
+      <FormControl fullWidth sx={{
+        '& .MuiOutlinedInput-root': {
+          color: '#fff',
+          '& fieldset': { borderColor: '#333' },
+          '&:hover fieldset': { borderColor: '#2AC318' },
+          '&.Mui-focused fieldset': { borderColor: '#2AC318' },
+        },
+        '& .MuiInputLabel-root': { color: '#7B7B7B' },
+        '& .MuiInputLabel-root.Mui-focused': { color: '#2AC318' },
+      }}>
+        <InputLabel id="network-select-label">Select Coin & Network</InputLabel>
+        <Select
+          labelId="network-select-label"
+          value={selectedNetwork.name}
+          label="Select Coin & Network"
+          onChange={(e) => {
+            const network = CRYPTO_NETWORKS.find(n => n.name === e.target.value);
+            if (network) setSelectedNetwork(network);
+          }}
+          sx={{
+            '& .MuiSvgIcon-root': { color: '#7B7B7B' }
+          }}
+        >
+          {CRYPTO_NETWORKS.map((network) => (
+            <MenuItem key={network.name} value={network.name}>
+              {network.name} ({network.networkName})
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
       <Alert severity="info" sx={{ bgcolor: 'rgba(42, 195, 24, 0.1)', color: '#fff', '& .MuiAlert-icon': { color: '#2AC318' } }}>
-        Please send exactly <strong>{cryptoAmount} BTC</strong> to the address below, then paste the transaction ID (TXID) here.
+        Please send your payment to the <strong>{selectedNetwork.name} ({selectedNetwork.networkName})</strong> address below, then paste the transaction ID (TXID) here.
       </Alert>
 
       <Box sx={{ bgcolor: '#0C0C0C', p: 2, borderRadius: '0.75rem', border: '1px solid #333' }}>
-        <Typography sx={{ color: '#7B7B7B', fontSize: '0.8rem', mb: 1 }}>Wallet Address (BTC)</Typography>
+        <Typography sx={{ color: '#7B7B7B', fontSize: '0.8rem', mb: 1 }}>
+          {selectedNetwork.name} ({selectedNetwork.networkName}) Address
+        </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Typography sx={{ color: '#fff', fontFamily: 'monospace', wordBreak: 'break-all', flex: 1 }}>
-            {walletAddress}
+            {selectedNetwork.address}
           </Typography>
           <Button 
             size="small" 
-            onClick={() => handleCopy(walletAddress)}
+            onClick={() => handleCopy(selectedNetwork.address)}
             sx={{ color: '#2AC318', minWidth: 'auto' }}
           >
             <ContentCopyIcon fontSize="small" />
@@ -88,6 +137,7 @@ export default function CryptoPaymentForm({ orderId, amount, currency, onSuccess
           fullWidth
           label="Transaction Hash (TXID)"
           variant="outlined"
+          placeholder="Paste your transaction hash here"
           value={txid}
           onChange={(e) => setTxid(e.target.value)}
           disabled={isSubmitting}
