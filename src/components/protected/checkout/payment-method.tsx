@@ -48,6 +48,7 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
     const transactionReference = `ORDER-${order?.data.orderNumber || uuidv4().split('-')[0]}-${Date.now()}`;
     const amountInKobo = Math.round((order?.data.total || 0) * 100);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const paystackOptions: any = {
       key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '',
       email: user.user?.email || '',
