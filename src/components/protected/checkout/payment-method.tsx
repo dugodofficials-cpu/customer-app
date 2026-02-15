@@ -50,18 +50,24 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const paystackOptions: any = {
-      key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '',
+      publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '',
       email: user.user?.email || '',
       amount: amountInKobo,
       currency: 'NGN',
-      reference: transactionReference,
-      onSuccess,
+      ref: transactionReference,
+      onSuccess: (response: any) => {
+        console.log('Payment successful:', response);
+        onSuccess();
+      },
       onCancel: () => {
         enqueueSnackbar('Payment cancelled', { variant: 'info' });
       },
-      onError: (error: unknown) => {
-        console.error('Paystack error:', error);
-        enqueueSnackbar('Payment initialization failed', { variant: 'error' });
+      onClose: () => {
+        enqueueSnackbar('Payment window closed', { variant: 'info' });
+      },
+      callback: (response: any) => {
+        console.log('Payment callback:', response);
+        onSuccess();
       },
       metadata: {
         custom_fields: [
