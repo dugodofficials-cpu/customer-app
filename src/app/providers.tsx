@@ -6,6 +6,7 @@ import { CartProvider } from '@/providers/CartProvider';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { PlayerProvider } from '@/context/player-context';
 import ProfessionalPlayer from '@/components/ui/professional-player';
+import PlayerModal from '@/components/ui/player-modal';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -20,6 +21,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
               <PlayerProvider>
                 {children}
                 <ProfessionalPlayer />
+                <PlayerModal />
               </PlayerProvider>
             </CartProvider>
           </SnackbarProvider>

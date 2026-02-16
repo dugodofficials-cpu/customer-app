@@ -18,6 +18,11 @@ interface PlayerContextType {
   progress: number;
   duration: number;
   seek: (value: number) => void;
+  isPlayerOpen: boolean;
+  openPlayer: () => void;
+  closePlayer: () => void;
+  playbackError: string | null;
+  isBuffering: boolean;
 }
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -27,6 +32,9 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [isPlayerOpen, setIsPlayerOpen] = useState(false);
+  const [playbackError, setPlaybackError] = useState<string | null>(null);
+  const [isBuffering, setIsBuffering] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -39,28 +47,59 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     const handleTimeUpdate = () => setProgress(audio.currentTime);
     const handleDurationChange = () => setDuration(audio.duration);
     const handleEnded = () => setIsPlaying(false);
+    const handleWaiting = () => setIsBuffering(true);
+    const handlePlaying = () => setIsBuffering(false);
+    const handleCanPlay = () => setIsBuffering(false);
+    const handleError = () => {
+      setIsBuffering(false);
+      setIsPlaying(false);
+      setPlaybackError('Unable to play this track. Please try again.');
+    };
 
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('durationchange', handleDurationChange);
     audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('waiting', handleWaiting);
+    audio.addEventListener('playing', handlePlaying);
+    audio.addEventListener('canplay', handleCanPlay);
+    audio.addEventListener('error', handleError);
 
     return () => {
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('durationchange', handleDurationChange);
       audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('waiting', handleWaiting);
+      audio.removeEventListener('playing', handlePlaying);
+      audio.removeEventListener('canplay', handleCanPlay);
+      audio.removeEventListener('error', handleError);
       audio.pause();
     };
   }, []);
 
+  const openPlayer = () => setIsPlayerOpen(true);
+  const closePlayer = () => setIsPlayerOpen(false);
+
   const playTrack = (track: Track) => {
     if (audioRef.current) {
       if (currentTrack?.id === track.id) {
+        setPlaybackError(null);
+        setIsPlayerOpen(true);
         togglePlay();
       } else {
+        setPlaybackError(null);
+        setIsBuffering(true);
         audioRef.current.src = track.audioUrl;
-        audioRef.current.play();
+        const playPromise = audioRef.current.play();
+        if (playPromise && typeof (playPromise as Promise<void>).catch === 'function') {
+          (playPromise as Promise<void>).catch(() => {
+            setIsBuffering(false);
+            setIsPlaying(false);
+            setPlaybackError('Playback was blocked. Tap play again to start.');
+          });
+        }
         setCurrentTrack(track);
         setIsPlaying(true);
+        setIsPlayerOpen(true);
       }
     }
   };
@@ -70,7 +109,16 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       if (isPlaying) {
         audioRef.current.pause();
       } else {
-        audioRef.current.play();
+        setPlaybackError(null);
+        setIsBuffering(true);
+        const playPromise = audioRef.current.play();
+        if (playPromise && typeof (playPromise as Promise<void>).catch === 'function') {
+          (playPromise as Promise<void>).catch(() => {
+            setIsBuffering(false);
+            setIsPlaying(false);
+            setPlaybackError('Playback was blocked. Tap play again to start.');
+          });
+        }
       }
       setIsPlaying(!isPlaying);
     }
@@ -93,6 +141,11 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         progress,
         duration,
         seek,
+        isPlayerOpen,
+        openPlayer,
+        closePlayer,
+        playbackError,
+        isBuffering,
       }}
     >
       {children}

@@ -1,10 +1,10 @@
-import AudioPlayer from '@/components/ui/audio-player';
 import ResponsiveTable, { TableColumn } from '@/components/ui/responsive-table';
 import { useGetUserOrders } from '@/hooks/order';
 import { getSavedMediaUrl, useDownloadMedia } from '@/hooks/products';
 import { Product, ProductType } from '@/lib/api/products';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import Image from 'next/image';
+import { usePlayer } from '@/context/player-context';
 import { useState } from 'react';
 
 interface ProductInfo {
@@ -15,6 +15,7 @@ interface ProductInfo {
   id: string;
   createdAt: string;
   index?: number;
+  image?: string;
 }
 
 export default function MusicTable({ userId }: { userId: string }) {
@@ -23,9 +24,8 @@ export default function MusicTable({ userId }: { userId: string }) {
     type: ProductType.DIGITAL,
   });
   const { mutate: downloadMedia } = useDownloadMedia();
-  const [playingTrack, setPlayingTrack] = useState<string | null>(null);
   const [downloadingTracks, setDownloadingTracks] = useState<Record<string, boolean>>({});
-  const [downloadedMedia, setDownloadedMedia] = useState<string | null>(null);
+  const { playTrack } = usePlayer();
 
   const getProductInfo = (
     product: Product | string,
@@ -52,6 +52,7 @@ export default function MusicTable({ userId }: { userId: string }) {
       id: product._id,
       createdAt,
       index,
+      image: product.albumId?.imageUrl || product.albumImage || product.images?.[0] || undefined,
     };
   };
 
@@ -72,18 +73,28 @@ export default function MusicTable({ userId }: { userId: string }) {
     }
   };
 
-  const handlePlay = (id: string) => {
-    const savedMediaUrl = getSavedMediaUrl(id);
+  const handlePlay = (item: ProductInfo) => {
+    const savedMediaUrl = getSavedMediaUrl(item.id);
     if (savedMediaUrl) {
-      setDownloadedMedia(savedMediaUrl);
-      setPlayingTrack(id);
+      playTrack({
+        id: item.id,
+        title: item.name,
+        artist: 'DuGod',
+        image: item.image || '/assets/album1.png',
+        audioUrl: savedMediaUrl,
+      });
     } else {
       downloadMedia(
-        { id, isDownloaded: false },
+        { id: item.id, isDownloaded: false },
         {
           onSuccess: (data) => {
-            setDownloadedMedia(data.data.url);
-            setPlayingTrack(id);
+            playTrack({
+              id: item.id,
+              title: item.name,
+              artist: 'DuGod',
+              image: item.image || '/assets/album1.png',
+              audioUrl: data.data.url,
+            });
           },
         }
       );
@@ -124,7 +135,6 @@ export default function MusicTable({ userId }: { userId: string }) {
     {
       header: 'Action',
       field: (item) => {
-        const isPlaying = playingTrack === item.id;
         return (
           <Box
             sx={{
@@ -134,27 +144,47 @@ export default function MusicTable({ userId }: { userId: string }) {
               height: 'auto',
             }}
           >
-            {isPlaying ? (
-              <AudioPlayer
-                audioUrl={downloadedMedia || item.downloadUrl || ''}
-                onClose={() => setPlayingTrack(null)}
-              />
-            ) : (
+            <Box
+              sx={{
+                display: 'flex',
+                height: '1.875rem',
+                padding: '0.25rem 0.75rem',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '0.625rem',
+                borderRadius: '1.25rem',
+                background: '#2AC318',
+              }}
+            >
               <Box
+                component="button"
+                onClick={() => handleDownload(item.id)}
                 sx={{
-                  display: 'flex',
-                  height: '1.875rem',
-                  padding: '0.25rem 0.75rem',
-                  justifyContent: 'center',
+                  display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '0.625rem',
-                  borderRadius: '1.25rem',
+                  justifyContent: 'center',
+                  width: '32px',
+                  height: '100%',
+                  border: 'none',
+                  cursor: 'pointer',
                   background: '#2AC318',
+                  borderTopLeftRadius: '4px',
+                  borderBottomLeftRadius: '4px',
+                  '&:hover': {
+                    opacity: 0.2,
+                  },
                 }}
               >
+                {downloadingTracks[item.id] ? (
+                  <CircularProgress size={24} />
+                ) : (
+                  <Image src="/assets/download.svg" alt="Download" width={24} height={24} />
+                )}
+              </Box>
+              {item.downloadUrl ? (
                 <Box
                   component="button"
-                  onClick={() => handleDownload(item.id)}
+                  onClick={() => handlePlay(item)}
                   sx={{
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -162,47 +192,20 @@ export default function MusicTable({ userId }: { userId: string }) {
                     width: '32px',
                     height: '100%',
                     border: 'none',
+                    borderLeft: '1px solid 3F3F3F',
                     cursor: 'pointer',
                     background: '#2AC318',
-                    borderTopLeftRadius: '4px',
-                    borderBottomLeftRadius: '4px',
+                    borderTopRightRadius: '4px',
+                    borderBottomRightRadius: '4px',
                     '&:hover': {
                       opacity: 0.2,
                     },
                   }}
                 >
-                  {downloadingTracks[item.id] ? (
-                    <CircularProgress size={24} />
-                  ) : (
-                    <Image src="/assets/download.svg" alt="Download" width={24} height={24} />
-                  )}
+                  <Image src="/assets/play-dark.svg" alt="Play" width={24} height={24} />
                 </Box>
-                {item.downloadUrl ? (
-                  <Box
-                    component="button"
-                    onClick={() => handlePlay(item.id)}
-                    sx={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: '32px',
-                      height: '100%',
-                      border: 'none',
-                      borderLeft: '1px solid 3F3F3F',
-                      cursor: 'pointer',
-                      background: '#2AC318',
-                      borderTopRightRadius: '4px',
-                      borderBottomRightRadius: '4px',
-                      '&:hover': {
-                        opacity: 0.2,
-                      },
-                    }}
-                  >
-                    <Image src="/assets/play-dark.svg" alt="Play" width={24} height={24} />
-                  </Box>
-                ) : null}
-              </Box>
-            )}
+              ) : null}
+            </Box>
           </Box>
         );
       },
@@ -229,13 +232,7 @@ export default function MusicTable({ userId }: { userId: string }) {
   };
 
   const mobileAction = (item: ProductInfo) => {
-    const isPlaying = playingTrack === item.id;
-    return isPlaying ? (
-      <AudioPlayer
-        audioUrl={downloadedMedia || item.downloadUrl || ''}
-        onClose={() => setPlayingTrack(null)}
-      />
-    ) : (
+    return (
       <Box
         sx={{
           display: 'flex',
@@ -288,7 +285,7 @@ export default function MusicTable({ userId }: { userId: string }) {
         </Box>
         <Box
           component="button"
-          onClick={() => handlePlay(item.id)}
+          onClick={() => handlePlay(item)}
           sx={{
             display: 'inline-flex',
             alignItems: 'center',
