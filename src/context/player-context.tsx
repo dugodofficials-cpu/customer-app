@@ -37,9 +37,20 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const [isBuffering, setIsBuffering] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  const getReadablePlaybackError = (err: unknown) => {
+    if (err instanceof Error) return err.message;
+    if (typeof err === 'string') return err;
+    try {
+      return JSON.stringify(err);
+    } catch {
+      return 'Unknown playback error';
+    }
+  };
+
   useEffect(() => {
     if (!audioRef.current) {
       audioRef.current = new Audio();
+      audioRef.current.crossOrigin = 'anonymous';
     }
 
     const audio = audioRef.current;
@@ -53,7 +64,12 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     const handleError = () => {
       setIsBuffering(false);
       setIsPlaying(false);
-      setPlaybackError('Unable to play this track. Please try again.');
+      const code = audio.error?.code;
+      setPlaybackError(
+        code
+          ? `Unable to play this track (error code: ${code}). Please try again.`
+          : 'Unable to play this track. Please try again.'
+      );
     };
 
     audio.addEventListener('timeupdate', handleTimeUpdate);
@@ -89,17 +105,25 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         setPlaybackError(null);
         setIsBuffering(true);
         audioRef.current.src = track.audioUrl;
-        const playPromise = audioRef.current.play();
-        if (playPromise && typeof (playPromise as Promise<void>).catch === 'function') {
-          (playPromise as Promise<void>).catch(() => {
-            setIsBuffering(false);
-            setIsPlaying(false);
-            setPlaybackError('Playback was blocked. Tap play again to start.');
-          });
-        }
         setCurrentTrack(track);
-        setIsPlaying(true);
         setIsPlayerOpen(true);
+
+        const playPromise = audioRef.current.play();
+        if (playPromise && typeof (playPromise as Promise<void>).then === 'function') {
+          (playPromise as Promise<void>)
+            .then(() => {
+              setIsBuffering(false);
+              setIsPlaying(true);
+            })
+            .catch((err) => {
+              setIsBuffering(false);
+              setIsPlaying(false);
+              setPlaybackError(getReadablePlaybackError(err));
+            });
+        } else {
+          setIsBuffering(false);
+          setIsPlaying(true);
+        }
       }
     }
   };
@@ -108,19 +132,28 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     if (audioRef.current && currentTrack) {
       if (isPlaying) {
         audioRef.current.pause();
+        setIsPlaying(false);
+        setIsBuffering(false);
       } else {
         setPlaybackError(null);
         setIsBuffering(true);
         const playPromise = audioRef.current.play();
-        if (playPromise && typeof (playPromise as Promise<void>).catch === 'function') {
-          (playPromise as Promise<void>).catch(() => {
-            setIsBuffering(false);
-            setIsPlaying(false);
-            setPlaybackError('Playback was blocked. Tap play again to start.');
-          });
+        if (playPromise && typeof (playPromise as Promise<void>).then === 'function') {
+          (playPromise as Promise<void>)
+            .then(() => {
+              setIsBuffering(false);
+              setIsPlaying(true);
+            })
+            .catch((err) => {
+              setIsBuffering(false);
+              setIsPlaying(false);
+              setPlaybackError(getReadablePlaybackError(err));
+            });
+        } else {
+          setIsBuffering(false);
+          setIsPlaying(true);
         }
       }
-      setIsPlaying(!isPlaying);
     }
   };
 
