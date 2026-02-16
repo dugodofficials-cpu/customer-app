@@ -80,7 +80,7 @@ export default function ShippingDetails({ onNext, onBack }: ShippingDetailsProps
           total: cartItems?.data.total,
           subtotal: cartItems?.data.subtotal,
           status: OrderStatus.PENDING,
-          paymentStatus: 'PENDING',
+          paymentStatus: 'pending',
           shippingDetails: {
             deliveryStatus: DeliveryStatus.PENDING,
             address: {

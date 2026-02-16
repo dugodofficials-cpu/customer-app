@@ -43,7 +43,7 @@ export default function CartReview({ onNext, hasPhysicalItems }: CartReviewProps
             total: cartItems?.data.total,
             subtotal: cartItems?.data.subtotal,
             status: OrderStatus.PENDING,
-            paymentStatus: 'PENDING',
+            paymentStatus: 'pending',
             shippingDetails: {
               deliveryStatus: DeliveryStatus.PENDING,
               address: {
