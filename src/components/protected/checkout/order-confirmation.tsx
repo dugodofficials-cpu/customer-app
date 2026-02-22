@@ -14,6 +14,19 @@ export default function OrderConfirmation() {
   const orderId = searchParams.get('orderId');
   const { data: order } = useGetOrder(orderId || '');
 
+  const handleContinue = () => {
+    if (typeof window !== 'undefined') {
+      const redirect = window.localStorage.getItem('postPurchaseRedirect');
+      if (redirect) {
+        window.localStorage.removeItem('postPurchaseRedirect');
+        router.push(redirect);
+        return;
+      }
+    }
+
+    router.push(ROUTES.USER.HOME);
+  };
+
   useEffect(() => {
     if (!orderId) {
       router.replace(ROUTES.CHECKOUT);
@@ -142,7 +155,7 @@ export default function OrderConfirmation() {
           Track your order
         </Button>
         <Button
-          onClick={() => router.push(ROUTES.USER.HOME)}
+          onClick={handleContinue}
           sx={{
             backgroundColor: '#0B6201',
             color: '#FFF',

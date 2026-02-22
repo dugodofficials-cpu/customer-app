@@ -132,12 +132,11 @@ export default function GameRulesPage() {
               lineHeight: '120%',
             }}
           >
-            • Discover clues in lyrics, music, cover art, merch
+            • Buy a game ticket from the shop
             <br />
-            • Platinum users get early access to premium clues
+            • Follow the map in the lyrics, music, art, merch, and more.
             <br />
-            • You need at least 5 keys to unlock the BlackBox
-            <br />• You only get one shot to open it
+            • You need all the keys to unlock the blackbox.
           </Typography>
         </Box>
         <Box
@@ -184,12 +183,18 @@ export default function GameRulesPage() {
           >
             Must be a registered user.
             <br />
-            All clues must be solved in order. <br />
-            First to unlock the Black Box wins the million bucks
+            All clues must be solved in order.
+            <br />
+            Listen to unlock, finishing is not about luck.
           </Typography>
         </Box>
         <Button
-          onClick={() => router.push(ROUTES.GAME.CLUES)}
+          onClick={() => {
+            if (typeof window !== 'undefined') {
+              window.localStorage.setItem('postPurchaseRedirect', ROUTES.GAME.CLUES);
+            }
+            router.push(ROUTES.SHOP.HOME);
+          }}
           sx={{
             display: 'flex',
             height: '2.6875rem',

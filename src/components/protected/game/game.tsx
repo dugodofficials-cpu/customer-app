@@ -168,7 +168,7 @@ export default function GamePage() {
                 lineHeight: '150%',
               }}
             >
-              🔓 Try to Open the Box
+              🔓 Open the box
             </Typography>
           </Button>
           <Button
