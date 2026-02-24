@@ -21,7 +21,6 @@ interface PaymentMethodProps {
 
 export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: PaymentMethodProps) {
   const [paymentMethod, setPaymentMethod] = useState('card');
-  const [showCryptoForm, setShowCryptoForm] = useState(false);
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
   const user = useUser();
@@ -32,9 +31,8 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
 
   const handleSubmit = (event: React.FormEvent, paymentMethod: string) => {
     event.preventDefault();
-    
+
     if (paymentMethod === 'crypto') {
-      setShowCryptoForm(true);
       return;
     }
 
@@ -105,8 +103,7 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
 
   return (
     <Box
-      component="form"
-      onSubmit={(e) => handleSubmit(e, paymentMethod)}
+      component="div"
       sx={{
         backgroundColor: '#111',
         borderRadius: '1rem',
@@ -280,6 +277,23 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
                 }
               />
             </Box>
+
+            {paymentMethod === 'crypto' && orderId ? (
+              <Box sx={{ mt: 3 }}>
+                <CryptoPaymentForm
+                  orderId={orderId}
+                  amount={order?.data.total || 0}
+                  currency={'NGN'}
+                  onSuccess={() => {
+                    updateCartStatus({
+                      cartId: cart?.data._id || '',
+                      status: CartStatus.CHECKOUT_IN_PROGRESS,
+                    });
+                    onNext();
+                  }}
+                />
+              </Box>
+            ) : null}
           </RadioGroup>
         </Box>
 
@@ -399,7 +413,7 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
         }}
       >
         <Button
-          onClick={() => (showCryptoForm ? setShowCryptoForm(false) : onBack(hasPhysicalItems ? 1 : 0))}
+          onClick={() => onBack(hasPhysicalItems ? 1 : 0)}
           sx={{
             order: { xs: 2, sm: 1 },
             backgroundColor: '#333',
@@ -413,11 +427,11 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
             },
           }}
         >
-          {showCryptoForm ? 'Cancel' : `Back to ${hasPhysicalItems ? 'Shipping Details' : 'Cart'}`}
+          Back to {hasPhysicalItems ? 'Shipping Details' : 'Cart'}
         </Button>
-        {!showCryptoForm && (
+        {paymentMethod !== 'crypto' && (
           <Button
-            type="submit"
+            onClick={(e) => handleSubmit(e as unknown as React.FormEvent, paymentMethod)}
             sx={{
               order: { xs: 1, sm: 2 },
               backgroundColor: '#0B6201',
@@ -435,23 +449,6 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
           </Button>
         )}
       </Box>
-
-      {showCryptoForm && (
-        <Box sx={{ mt: 4, borderTop: '1px solid #333', pt: 4 }}>
-          <Typography variant="h6" sx={{ color: '#fff', mb: 2, fontFamily: 'ClashDisplay-Medium' }}>
-            Crypto Payment Details
-          </Typography>
-          <CryptoPaymentForm
-            orderId={orderId}
-            amount={order?.data.total || 0}
-            currency={order?.data.currency || 'NGN'}
-            onSuccess={() => {
-              updateCartStatus({ cartId: cart?.data._id || '', status: CartStatus.CHECKOUT_IN_PROGRESS });
-              onNext();
-            }}
-          />
-        </Box>
-      )}
     </Box>
   );
 }
