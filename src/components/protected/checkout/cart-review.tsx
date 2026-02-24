@@ -1,10 +1,10 @@
 'use client';
 
-import { useApplyCouponCode, useCart } from '@/hooks/cart';
+import { useApplyCouponCode, useCart, useRemoveFromCart } from '@/hooks/cart';
 import { useCreateOrder } from '@/hooks/order';
 import { useUser } from '@/hooks/user';
 import { AppliedDiscount, CartItem, CartItemResponse } from '@/lib/api/cart';
-import { OrderStatus } from '@/lib/api/order';
+import { DeliveryStatus, OrderStatus } from '@/lib/api/order';
 import { ROUTES } from '@/util/paths';
 import { Box, Button, CircularProgress, TextField, Typography } from '@mui/material';
 import { UseQueryResult } from '@tanstack/react-query';
@@ -23,6 +23,7 @@ export default function CartReview({ onNext }: CartReviewProps) {
   };
   const { user } = useUser();
   const createOrder = useCreateOrder();
+  const { mutate: removeFromCart, isPending: isRemovingFromCart } = useRemoveFromCart();
   const router = useRouter();
 
   const [couponCode, setCouponCode] = useState('');
@@ -58,6 +59,16 @@ export default function CartReview({ onNext }: CartReviewProps) {
           subtotal,
           status: OrderStatus.PENDING,
           paymentStatus: 'pending',
+          shippingDetails: {
+            deliveryStatus: DeliveryStatus.PENDING,
+            address: {
+              street: user?.address?.street || 'None Provided',
+              city: user?.address?.city || 'None Provided',
+              state: user?.address?.state || 'None Provided',
+              postalCode: user?.address?.postalCode || 'None Provided',
+              country: user?.address?.country || 'None Provided',
+            },
+          },
           items:
             cartItems?.data.items.map((item) => ({
               product: item.product._id,
@@ -329,6 +340,29 @@ export default function CartReview({ onNext }: CartReviewProps) {
                       Quantity: {item.quantity}
                     </Typography>
                   </Box>
+                  <Button
+                    onClick={() =>
+                      removeFromCart({
+                        productId: item.product._id,
+                        cartId: cartItems?.data._id || '',
+                        selectedOptions: item.selectedOptions || {},
+                      })
+                    }
+                    disabled={isRemovingFromCart}
+                    sx={{
+                      alignSelf: 'flex-start',
+                      color: '#FF4D4D',
+                      padding: 0,
+                      minWidth: 'auto',
+                      textTransform: 'none',
+                      '&:hover': {
+                        backgroundColor: 'transparent',
+                        textDecoration: 'underline',
+                      },
+                    }}
+                  >
+                    Remove
+                  </Button>
                   <Typography
                     sx={{
                       color: '#FFF',
