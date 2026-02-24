@@ -75,8 +75,17 @@ export default function CartReview({ onNext }: CartReviewProps) {
           onNext(1);
         });
     } catch (err) {
-      console.error('Error creating order:', err);
-      enqueueSnackbar('Failed to create order. Please try again.', { variant: 'error' });
+      const error = err as {
+        response?: { data?: { message?: string } };
+        message?: string;
+      };
+
+      const backendMessage = error.response?.data?.message;
+      console.error('Error creating order:', backendMessage || error.message || err);
+
+      enqueueSnackbar(backendMessage || 'Failed to create order. Please try again.', {
+        variant: 'error',
+      });
     }
   };
 
