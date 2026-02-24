@@ -29,15 +29,33 @@ export default function CartReview({ onNext }: CartReviewProps) {
   const { mutate: applyCouponCodeMutation, isPending: isApplyingCoupon } = useApplyCouponCode();
 
   const handleNext = async () => {
+    if (!user?._id) {
+      enqueueSnackbar('Please login again to continue.', { variant: 'error' });
+      return;
+    }
+
+    if (!cartItems?.data?.items?.length) {
+      enqueueSnackbar('Your cart is empty. Please add items and try again.', { variant: 'warning' });
+      return;
+    }
+
+    const computedSubtotal = cartItems.data.items.reduce(
+      (sum: number, item: CartItem) => sum + (item.product?.price || 0) * (item.quantity || 0),
+      0,
+    );
+
+    const subtotal = Number(cartItems?.data.subtotal ?? computedSubtotal);
+    const total = Number(cartItems?.data.total ?? subtotal);
+
     try {
       await createOrder
         .mutateAsync({
-          user: user?._id || '',
+          user: user._id,
           shippingCost: 0,
           tax: 0,
           discount: 0,
-          total: cartItems?.data.total,
-          subtotal: cartItems?.data.subtotal,
+          total,
+          subtotal,
           status: OrderStatus.PENDING,
           paymentStatus: 'pending',
           items:
