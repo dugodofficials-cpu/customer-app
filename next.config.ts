@@ -32,11 +32,19 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'dugod-media.s3.eu-north-1.amazonaws.com',
+      },
+      {
+        protocol: 'https',
         hostname: 'res.cloudinary.com',
       },
       {
         protocol: 'https',
         hostname: 'dugodofficial-public.s3.eu-north-1.amazonaws.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'dugod-public.s3.eu-north-1.amazonaws.com',
       },
       {
         protocol: 'http',
