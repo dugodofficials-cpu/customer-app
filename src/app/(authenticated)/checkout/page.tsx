@@ -4,25 +4,14 @@ import Footer from '@/components/layout/footer';
 import CartReview from '@/components/protected/checkout/cart-review';
 import OrderConfirmation from '@/components/protected/checkout/order-confirmation';
 import PaymentMethod from '@/components/protected/checkout/payment-method';
-import ShippingDetails from '@/components/protected/checkout/shipping-details';
-import { useCart } from '@/hooks/cart';
-import { ProductType } from '@/lib/api/products';
 import { Box, Container, Step, StepLabel, Stepper } from '@mui/material';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-const steps = ['Cart Review', 'Shipping Details', 'Payment Method', 'Confirmation'];
+const steps = ['Cart Review', 'Payment Method', 'Confirmation'];
 
 export default function Checkout() {
   const [activeStep, setActiveStep] = useState(0);
-  const [hasPhysicalItems, setHasPhysicalItems] = useState(false);
-  const { data: cartItems } = useCart();
-
-  useEffect(() => {
-    if (cartItems?.data.items.some((item) => item.product.type === ProductType.PHYSICAL)) {
-      setHasPhysicalItems(true);
-    }
-  }, [cartItems]);
   const params = useSearchParams();
 
   useEffect(() => {
@@ -50,15 +39,13 @@ export default function Checkout() {
   const renderStep = () => {
     switch (activeStep) {
       case 0:
-        return <CartReview onNext={(step) => handleNext(step)} hasPhysicalItems={hasPhysicalItems} />;
+        return <CartReview onNext={(step) => handleNext(step)} />;
       case 1:
-        return <ShippingDetails onNext={handleNext} onBack={handleBack} />;
+        return <PaymentMethod onNext={(step) => handleNext(step)} onBack={(step) => handleBack(step)} />;
       case 2:
-        return <PaymentMethod onNext={(step) => handleNext(step)} onBack={(step) => handleBack(step)} hasPhysicalItems={hasPhysicalItems} />;
-      case 3:
         return <OrderConfirmation />;
       default:
-        return <CartReview onNext={(step) => handleNext(step)} hasPhysicalItems={hasPhysicalItems} />;
+        return <CartReview onNext={(step) => handleNext(step)} />;
     }
   };
 

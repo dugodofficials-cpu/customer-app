@@ -4,15 +4,14 @@ import { Box, Button, Typography } from '@mui/material';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ROUTES } from '@/util/paths';
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { useGetOrder } from '@/hooks/order';
-import { ProductType } from '@/lib/api/products';
 
 export default function OrderConfirmation() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
-  const { data: order } = useGetOrder(orderId || '');
+  useGetOrder(orderId || '');
 
   const handleContinue = () => {
     if (typeof window !== 'undefined') {
@@ -32,17 +31,6 @@ export default function OrderConfirmation() {
       router.replace(ROUTES.CHECKOUT);
     }
   }, [orderId, router]);
-
-  const hasPhysicalProducts = useMemo(() => {
-    if (!order?.data?.items) return false;
-    return order.data.items.some((item) => {
-      const product = item.product;
-      if (typeof product === 'object' && product !== null && 'type' in product) {
-        return product.type === ProductType.PHYSICAL;
-      }
-      return false;
-    });
-  }, [order]);
 
   if (!orderId) {
     return null;
@@ -103,21 +91,6 @@ export default function OrderConfirmation() {
           Thank you for your purchase. We&apos;ll send you a confirmation email with your order
           details.
         </Typography>
-        {hasPhysicalProducts && order?.data.shippingDetails?.address && (
-          <Typography
-            sx={{
-              color: '#fff',
-              fontFamily: 'Satoshi',
-              fontSize: '1.125rem',
-              maxWidth: '500px',
-              margin: '0 auto',
-              marginBottom: 2,
-            }}
-          >
-            It will be delivered to: {order.data.shippingDetails.address.street}{' '}
-            {order.data.shippingDetails.address.city} {order.data.shippingDetails.address.state}
-          </Typography>
-        )}
         <Typography
           sx={{
             color: '#fff',
@@ -139,22 +112,6 @@ export default function OrderConfirmation() {
         }}
       >
         <Button
-          onClick={() => router.push(ROUTES.USER.PROFILE)}
-          sx={{
-            backgroundColor: '#333',
-            color: '#FFF',
-            padding: '0.75rem 2rem',
-            borderRadius: '0.5rem',
-            fontFamily: 'ClashDisplay-Medium',
-            textTransform: 'none',
-            '&:hover': {
-              backgroundColor: '#444',
-            },
-          }}
-        >
-          Track your order
-        </Button>
-        <Button
           onClick={handleContinue}
           sx={{
             backgroundColor: '#0B6201',
@@ -170,23 +127,6 @@ export default function OrderConfirmation() {
         >
           Continue Shopping
         </Button>
-      </Box>
-      <Box
-        sx={{
-          display: 'flex',
-          gap: 2,
-          marginTop: 2,
-        }}
-      >
-        <Typography
-          sx={{
-            color: '#7B7B7B',
-            fontFamily: 'Satoshi',
-            fontSize: '1rem',
-          }}
-        >
-          Delivery takes 1 business day within Lagos and 3–5 business days outside Lagos.
-        </Typography>
       </Box>
     </Box>
   );

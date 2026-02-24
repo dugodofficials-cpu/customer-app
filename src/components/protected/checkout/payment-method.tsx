@@ -16,10 +16,9 @@ import { CartStatus } from '@/lib/api/cart';
 interface PaymentMethodProps {
   onNext: (step?: number) => void;
   onBack: (step?: number) => void;
-  hasPhysicalItems: boolean;
 }
 
-export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: PaymentMethodProps) {
+export default function PaymentMethod({ onNext, onBack }: PaymentMethodProps) {
   const [paymentMethod, setPaymentMethod] = useState('card');
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
@@ -345,10 +344,8 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
                   justifyContent: 'space-between',
                 }}
               >
-                <Typography sx={{ color: '#7B7B7B', fontFamily: 'Satoshi' }}>Shipping</Typography>
-                <Typography sx={{ color: '#FFF', fontFamily: 'Satoshi' }}>
-                  ₦{(order?.data.shippingCost || 0).toLocaleString()}
-                </Typography>
+                <Typography sx={{ color: '#7B7B7B', fontFamily: 'Satoshi' }}>Delivery</Typography>
+                <Typography sx={{ color: '#FFF', fontFamily: 'Satoshi' }}>Digital</Typography>
               </Box>
               {order?.data.discount ? (
                 <Box
@@ -413,7 +410,7 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
         }}
       >
         <Button
-          onClick={() => onBack(hasPhysicalItems ? 1 : 0)}
+          onClick={() => onBack(0)}
           sx={{
             order: { xs: 2, sm: 1 },
             backgroundColor: '#333',
@@ -427,7 +424,7 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
             },
           }}
         >
-          Back to {hasPhysicalItems ? 'Shipping Details' : 'Cart'}
+          Back to Cart
         </Button>
         {paymentMethod !== 'crypto' && (
           <Button

@@ -4,7 +4,7 @@ import { useApplyCouponCode, useCart } from '@/hooks/cart';
 import { useCreateOrder } from '@/hooks/order';
 import { useUser } from '@/hooks/user';
 import { AppliedDiscount, CartItem, CartItemResponse } from '@/lib/api/cart';
-import { DeliveryStatus, OrderStatus } from '@/lib/api/order';
+import { OrderStatus } from '@/lib/api/order';
 import { ROUTES } from '@/util/paths';
 import { Box, Button, CircularProgress, TextField, Typography } from '@mui/material';
 import { UseQueryResult } from '@tanstack/react-query';
@@ -15,10 +15,9 @@ import { useState } from 'react';
 
 interface CartReviewProps {
   onNext: (step?: number) => void;
-  hasPhysicalItems: boolean;
 }
 
-export default function CartReview({ onNext, hasPhysicalItems }: CartReviewProps) {
+export default function CartReview({ onNext }: CartReviewProps) {
   const { data: cartItems, isLoading } = useCart() as UseQueryResult<CartItemResponse> & {
     mutate: () => Promise<void>;
   };
@@ -30,52 +29,36 @@ export default function CartReview({ onNext, hasPhysicalItems }: CartReviewProps
   const { mutate: applyCouponCodeMutation, isPending: isApplyingCoupon } = useApplyCouponCode();
 
   const handleNext = async () => {
-    if (hasPhysicalItems) {
-      onNext(1);
-    } else {
-      try {
-        await createOrder
-          .mutateAsync({
-            user: user?._id || '',
-            shippingCost: 0,
-            tax: 0,
-            discount: 0,
-            total: cartItems?.data.total,
-            subtotal: cartItems?.data.subtotal,
-            status: OrderStatus.PENDING,
-            paymentStatus: 'pending',
-            shippingDetails: {
-              deliveryStatus: DeliveryStatus.PENDING,
-              address: {
-                street: user?.address?.street || 'None Provided',
-                city: user?.address?.city || 'None Provided',
-                state: user?.address?.state || 'None Provided',
-                postalCode: user?.address?.postalCode || 'None Provided',
-                country: user?.address?.country || 'None Provided',
-              },
-            },
-            items:
-              cartItems?.data.items.map((item) => ({
-                product: item.product._id,
-                quantity: item.quantity,
-                price: item.product.price,
-                total: item.product.price * item.quantity,
-                selectedOptions: item.selectedOptions
-                  ? Object.values(item.selectedOptions)
-                  : undefined,
-              })) || [],
-          })
-          .then((response) => {
-            const url = new URL(window.location.href);
-            url.searchParams.set('orderId', response.data._id);
-            console.log(url.toString());
-            window.history.replaceState({}, '', url.toString());
-            onNext(2);
-          });
-      } catch (err) {
-        console.error('Error saving shipping details:', err);
-        enqueueSnackbar('Failed to save shipping details. Please try again.', { variant: 'error' });
-      }
+    try {
+      await createOrder
+        .mutateAsync({
+          user: user?._id || '',
+          shippingCost: 0,
+          tax: 0,
+          discount: 0,
+          total: cartItems?.data.total,
+          subtotal: cartItems?.data.subtotal,
+          status: OrderStatus.PENDING,
+          paymentStatus: 'pending',
+          items:
+            cartItems?.data.items.map((item) => ({
+              product: item.product._id,
+              quantity: item.quantity,
+              price: item.product.price,
+              total: item.product.price * item.quantity,
+              selectedOptions: item.selectedOptions ? Object.values(item.selectedOptions) : undefined,
+            })) || [],
+        })
+        .then((response) => {
+          const url = new URL(window.location.href);
+          url.searchParams.set('orderId', response.data._id);
+          console.log(url.toString());
+          window.history.replaceState({}, '', url.toString());
+          onNext(1);
+        });
+    } catch (err) {
+      console.error('Error creating order:', err);
+      enqueueSnackbar('Failed to create order. Please try again.', { variant: 'error' });
     }
   };
 
@@ -309,18 +292,6 @@ export default function CartReview({ onNext, hasPhysicalItems }: CartReviewProps
                     >
                       {item.product.name}
                     </Typography>
-                    {item.selectedOptions?.size ? (
-                      <Typography
-                        sx={{
-                          color: '#7B7B7B',
-                          fontFamily: 'Satoshi',
-                          fontSize: '1rem',
-                          marginBottom: 0.5,
-                        }}
-                      >
-                        Size: {item.selectedOptions?.size}
-                      </Typography>
-                    ) : null}
                     <Typography
                       sx={{
                         color: '#7B7B7B',
@@ -328,7 +299,7 @@ export default function CartReview({ onNext, hasPhysicalItems }: CartReviewProps
                         fontSize: '1rem',
                       }}
                     >
-                      {item.selectedOptions?.size ? `Quantity: ${item.quantity}` : 'Digital'}
+                      Quantity: {item.quantity}
                     </Typography>
                   </Box>
                   <Typography
@@ -394,8 +365,8 @@ export default function CartReview({ onNext, hasPhysicalItems }: CartReviewProps
                 fontFamily: 'Satoshi',
               }}
             >
-              <Typography>Shipping</Typography>
-              <Typography>Calculated at next step</Typography>
+              <Typography>Delivery</Typography>
+              <Typography>Digital</Typography>
             </Box>
 
             {totalDiscount > 0 && (
