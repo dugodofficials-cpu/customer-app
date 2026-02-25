@@ -1,6 +1,6 @@
 'use client';
 
-import { useApplyCouponCode, useCart, useRemoveFromCart } from '@/hooks/cart';
+import { useApplyCouponCode, useCart } from '@/hooks/cart';
 import { useCreateOrder } from '@/hooks/order';
 import { useUser } from '@/hooks/user';
 import { AppliedDiscount, CartItem, CartItemResponse } from '@/lib/api/cart';
@@ -15,88 +15,72 @@ import { useState } from 'react';
 
 interface CartReviewProps {
   onNext: (step?: number) => void;
+  hasPhysicalItems: boolean;
 }
 
-export default function CartReview({ onNext }: CartReviewProps) {
+export default function CartReview({ onNext, hasPhysicalItems }: CartReviewProps) {
   const { data: cartItems, isLoading } = useCart() as UseQueryResult<CartItemResponse> & {
     mutate: () => Promise<void>;
   };
   const { user } = useUser();
   const createOrder = useCreateOrder();
-  const { mutate: removeFromCart, isPending: isRemovingFromCart } = useRemoveFromCart();
   const router = useRouter();
 
   const [couponCode, setCouponCode] = useState('');
   const { mutate: applyCouponCodeMutation, isPending: isApplyingCoupon } = useApplyCouponCode();
 
   const handleNext = async () => {
-    if (!user?._id) {
-      enqueueSnackbar('Please login again to continue.', { variant: 'error' });
-      return;
-    }
+    if (hasPhysicalItems) {
+      onNext(1);
+    } else {
+      const cartSubtotal = cartItems?.data.subtotal || 0;
+      const cartShipping = cartItems?.data.shippingCost || 0;
+      const cartTotal = cartItems?.data.total || 0;
+      const totalWithoutShipping = Math.max(0, cartTotal - cartShipping);
 
-    if (!cartItems?.data?.items?.length) {
-      enqueueSnackbar('Your cart is empty. Please add items and try again.', { variant: 'warning' });
-      return;
-    }
-
-    const computedSubtotal = cartItems.data.items.reduce(
-      (sum: number, item: CartItem) => sum + (item.product?.price || 0) * (item.quantity || 0),
-      0,
-    );
-
-    const subtotal = Number(cartItems?.data.subtotal ?? computedSubtotal);
-    const total = Number(cartItems?.data.total ?? subtotal);
-
-    try {
-      await createOrder
-        .mutateAsync({
-          user: user._id,
-          shippingCost: 0,
-          tax: 0,
-          discount: 0,
-          total,
-          subtotal,
-          status: OrderStatus.PENDING,
-          paymentStatus: 'pending',
-          shippingDetails: {
-            deliveryStatus: DeliveryStatus.PENDING,
-            address: {
-              street: user?.address?.street || 'None Provided',
-              city: user?.address?.city || 'None Provided',
-              state: user?.address?.state || 'None Provided',
-              postalCode: user?.address?.postalCode || 'None Provided',
-              country: user?.address?.country || 'None Provided',
+      try {
+        await createOrder
+          .mutateAsync({
+            user: user?._id || '',
+            shippingCost: 0,
+            tax: 0,
+            discount: 0,
+            total: totalWithoutShipping,
+            subtotal: cartSubtotal,
+            status: OrderStatus.PENDING,
+            paymentStatus: 'PENDING',
+            shippingDetails: {
+              deliveryStatus: DeliveryStatus.PENDING,
+              address: {
+                street: user?.address?.street || 'None Provided',
+                city: user?.address?.city || 'None Provided',
+                state: user?.address?.state || 'None Provided',
+                postalCode: user?.address?.postalCode || 'None Provided',
+                country: user?.address?.country || 'None Provided',
+              },
             },
-          },
-          items:
-            cartItems?.data.items.map((item) => ({
-              product: item.product._id,
-              quantity: item.quantity,
-              price: item.product.price,
-              total: item.product.price * item.quantity,
-              selectedOptions: item.selectedOptions ? Object.values(item.selectedOptions) : undefined,
-            })) || [],
-        })
-        .then((response) => {
-          const url = new URL(window.location.href);
-          url.searchParams.set('orderId', response.data._id);
-          console.log(url.toString());
-          window.history.replaceState({}, '', url.toString());
-          onNext(1);
-        });
-    } catch (err) {
-      const error = err as {
-        response?: { data?: { message?: string } };
-        message?: string;
-      };
-
-      const backendMessage = error.response?.data?.message;
-      console.error('Error creating order:', backendMessage || error.message || err);
-
-      enqueueSnackbar(backendMessage || 'Failed to create order. Please try again.', {
-        variant: 'error',
-      });
+            items:
+              cartItems?.data.items.map((item) => ({
+                product: item.product._id,
+                quantity: item.quantity,
+                price: item.product.price,
+                total: item.product.price * item.quantity,
+                selectedOptions: item.selectedOptions
+                  ? Object.values(item.selectedOptions)
+                  : undefined,
+              })) || [],
+          })
+          .then((response) => {
+            const url = new URL(window.location.href);
+            url.searchParams.set('orderId', response.data._id);
+            console.log(url.toString());
+            window.history.replaceState({}, '', url.toString());
+            onNext(2);
+          });
+      } catch (err) {
+        console.error('Error saving shipping details:', err);
+        enqueueSnackbar('Failed to save shipping details. Please try again.', { variant: 'error' });
+      }
     }
   };
 
@@ -330,6 +314,18 @@ export default function CartReview({ onNext }: CartReviewProps) {
                     >
                       {item.product.name}
                     </Typography>
+                    {item.selectedOptions?.size ? (
+                      <Typography
+                        sx={{
+                          color: '#7B7B7B',
+                          fontFamily: 'Satoshi',
+                          fontSize: '1rem',
+                          marginBottom: 0.5,
+                        }}
+                      >
+                        Size: {item.selectedOptions?.size}
+                      </Typography>
+                    ) : null}
                     <Typography
                       sx={{
                         color: '#7B7B7B',
@@ -337,32 +333,9 @@ export default function CartReview({ onNext }: CartReviewProps) {
                         fontSize: '1rem',
                       }}
                     >
-                      Quantity: {item.quantity}
+                      {item.selectedOptions?.size ? `Quantity: ${item.quantity}` : 'Digital'}
                     </Typography>
                   </Box>
-                  <Button
-                    onClick={() =>
-                      removeFromCart({
-                        productId: item.product._id,
-                        cartId: cartItems?.data._id || '',
-                        selectedOptions: item.selectedOptions || {},
-                      })
-                    }
-                    disabled={isRemovingFromCart}
-                    sx={{
-                      alignSelf: 'flex-start',
-                      color: '#FF4D4D',
-                      padding: 0,
-                      minWidth: 'auto',
-                      textTransform: 'none',
-                      '&:hover': {
-                        backgroundColor: 'transparent',
-                        textDecoration: 'underline',
-                      },
-                    }}
-                  >
-                    Remove
-                  </Button>
                   <Typography
                     sx={{
                       color: '#FFF',
@@ -426,8 +399,8 @@ export default function CartReview({ onNext }: CartReviewProps) {
                 fontFamily: 'Satoshi',
               }}
             >
-              <Typography>Delivery</Typography>
-              <Typography>Digital</Typography>
+              <Typography>Shipping</Typography>
+              <Typography>Calculated at next step</Typography>
             </Box>
 
             {totalDiscount > 0 && (
