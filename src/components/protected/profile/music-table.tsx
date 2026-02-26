@@ -96,24 +96,24 @@ export default function MusicTable({ userId }: { userId: string }) {
 
   const tableData: ProductInfo[] =
     orders?.data
-      ?.flatMap((order, orderIndex) =>
+      ?.flatMap((order) =>
         order.items
           .filter((item) => item.product)
-          .map((item, itemIndex) => {
+          .map((item) => {
             const createdDate = order.createdAt ? new Date(order.createdAt) : new Date();
-            const index = itemIndex ? 0 : orderIndex + 1;
-            return getProductInfo(item.product, createdDate.toISOString(), index);
+            return getProductInfo(item.product, createdDate.toISOString(), 0);
           })
       )
-      .filter((item): item is ProductInfo => item !== null) || [];
+      .filter((item): item is ProductInfo => item !== null)
+      .map((item, index) => ({ ...item, index: index + 1 })) || [];
 
   const columns: TableColumn<ProductInfo>[] = [
     {
       header: '#',
       field: 'index',
-      mobileField: (item: ProductInfo) => ((item.index || 0) + 1).toString(),
+      mobileField: (item: ProductInfo) => (item.index || 0).toString(),
     },
-    { header: 'Track', field: 'name' },
+    { header: 'Items', field: 'name' },
     { header: 'Duration', field: 'duration', hideOnMobile: true },
     { header: 'Price', field: 'price', hideOnMobile: true },
     {
