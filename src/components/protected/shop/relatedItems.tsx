@@ -34,7 +34,6 @@ export default function RelatedItems({
     isLoading,
     isError,
   } = usePhysicalProducts({
-    type: ProductType.PHYSICAL,
     status: ProductStatus.ACTIVE,
     ...(useCategory && { category: category?.join(', ') }),
     isActive: true,
@@ -66,6 +65,10 @@ export default function RelatedItems({
     page: 1,
     exclude: productId,
   });
+
+  const relatedProducts = (physicalProducts?.data || []).filter(
+    (p) => p.type === ProductType.PHYSICAL || p.type === ProductType.DIGITAL,
+  );
 
   useEffect(() => {
     if (!isLoading && physicalProducts?.data && physicalProducts.data.length === 0 && useCategory) {
@@ -130,11 +133,11 @@ export default function RelatedItems({
       </Box>
     );
 
-  if (isError || !physicalProducts?.data) {
+  if (isError || !relatedProducts || relatedProducts.length === 0)
     return (
       <Box
         sx={{
-          display: 'flex',
+          width: '100%',
           justifyContent: 'center',
           alignItems: 'center',
           minHeight: '60vh',
@@ -144,7 +147,6 @@ export default function RelatedItems({
         <Typography>Failed to load products. Please try again later.</Typography>
       </Box>
     );
-  }
 
   const handleSortChange = (event: SelectChangeEvent<string>) => {
     setSort(event.target.value);
@@ -259,14 +261,14 @@ export default function RelatedItems({
         </Select>
       </Grid>
       <Grid container spacing={{ xs: 2, sm: 3, md: 4 }}>
-        {physicalProducts.data.map((product) => (
+        {relatedProducts.map((product) => (
           <Grid key={product._id} size={{ xs: 12, sm: 6, md: 4 }}>
             <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
               <ProductCard
                 id={product._id}
                 productName={product.name}
-                price={product.price.toString()}
-                productImage={product.images[0]}
+                price={String(product.price)}
+                productImage={product.images?.[0] || ''}
                 stockQuantity={product.stockQuantity || 0}
                 productType={product.type}
               />

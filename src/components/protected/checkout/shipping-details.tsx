@@ -67,22 +67,17 @@ export default function ShippingDetails({ onNext, onBack }: ShippingDetailsProps
           country: data.country,
         },
       });
-
-      const hasPhysicalItems =
-        cartItems?.data.items?.some((item) => item.product.type === ProductType.PHYSICAL) ?? false;
-      const shippingCost = hasPhysicalItems ? 1000 : 0;
-      const cartShipping = cartItems?.data.shippingCost || 0;
-      const cartTotal = cartItems?.data.total || 0;
-      const totalWithoutCartShipping = Math.max(0, cartTotal - cartShipping);
-      const updatedTotal = totalWithoutCartShipping + shippingCost;
-
       await createOrder
         .mutateAsync({
           user: user?._id || '',
-          shippingCost,
+          shippingCost: cartItems?.data.items.every(
+            (item) => item.product.type === ProductType.DIGITAL
+          )
+            ? 0
+            : 1000,
           tax: 0,
           discount: 0,
-          total: updatedTotal,
+          total: cartItems?.data.total,
           subtotal: cartItems?.data.subtotal,
           status: OrderStatus.PENDING,
           paymentStatus: 'PENDING',

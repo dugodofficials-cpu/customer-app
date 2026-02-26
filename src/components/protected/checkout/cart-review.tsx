@@ -33,11 +33,6 @@ export default function CartReview({ onNext, hasPhysicalItems }: CartReviewProps
     if (hasPhysicalItems) {
       onNext(1);
     } else {
-      const cartSubtotal = cartItems?.data.subtotal || 0;
-      const cartShipping = cartItems?.data.shippingCost || 0;
-      const cartTotal = cartItems?.data.total || 0;
-      const totalWithoutShipping = Math.max(0, cartTotal - cartShipping);
-
       try {
         await createOrder
           .mutateAsync({
@@ -45,8 +40,8 @@ export default function CartReview({ onNext, hasPhysicalItems }: CartReviewProps
             shippingCost: 0,
             tax: 0,
             discount: 0,
-            total: totalWithoutShipping,
-            subtotal: cartSubtotal,
+            total: cartItems?.data.total,
+            subtotal: cartItems?.data.subtotal,
             status: OrderStatus.PENDING,
             paymentStatus: 'PENDING',
             shippingDetails: {

@@ -3,11 +3,10 @@
 import { Box, Button, FormControlLabel, Radio, RadioGroup, Typography } from '@mui/material';
 import { useState } from 'react';
 import Image from 'next/image';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { ROUTES } from '@/util/paths';
 import PaystackPop from '@paystack/inline-js';
-import CryptoPaymentForm from './crypto-payment-form';
 import { useUser } from '@/hooks/user';
-import { v4 as uuidv4 } from 'uuid';
 import { useGetOrder } from '@/hooks/order';
 import { useSnackbar } from 'notistack';
 import { useCart, useUpdateCartStatus } from '@/hooks/cart';
@@ -16,84 +15,63 @@ import { CartStatus } from '@/lib/api/cart';
 interface PaymentMethodProps {
   onNext: (step?: number) => void;
   onBack: (step?: number) => void;
+  hasPhysicalItems: boolean;
 }
 
-export default function PaymentMethod({ onNext, onBack }: PaymentMethodProps) {
+export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: PaymentMethodProps) {
   const [paymentMethod, setPaymentMethod] = useState('card');
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
   const user = useUser();
   const { data: order } = useGetOrder(orderId || '');
+  const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
   const { mutate: updateCartStatus } = useUpdateCartStatus();
   const { data: cart } = useCart();
 
   const handleSubmit = (event: React.FormEvent, paymentMethod: string) => {
     event.preventDefault();
-
-    if (paymentMethod === 'crypto') {
-      return;
-    }
-
     const paystackInstance = new PaystackPop();
 
     const onSuccess = () => {
       updateCartStatus({ cartId: cart?.data._id || '', status: CartStatus.CHECKOUT_IN_PROGRESS });
       onNext();
     };
-
-    const transactionReference = `ORDER-${order?.data.orderNumber || uuidv4().split('-')[0]}-${Date.now()}`;
-    const key = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '';
-    const email = user.user?.email || '';
-    const amountInKobo = Math.round((order?.data.total || 0) * 100);
-
-    if (!key || !key.startsWith('pk_')) {
-      console.error('Paystack init blocked: invalid/missing public key', { keyPreview: key ? `${key.slice(0, 6)}...` : '' });
-      enqueueSnackbar('Paystack key is missing. Please contact support.', { variant: 'error' });
-      return;
-    }
-
-    if (!email || !email.includes('@')) {
-      console.error('Paystack init blocked: invalid/missing email', { email });
-      enqueueSnackbar('Please login again to continue payment.', { variant: 'error' });
-      return;
-    }
-
-    if (!Number.isFinite(amountInKobo) || amountInKobo <= 0) {
-      console.error('Paystack init blocked: invalid amount', { total: order?.data.total, amountInKobo });
-      enqueueSnackbar('Invalid order amount. Please refresh and try again.', { variant: 'error' });
-      return;
-    }
-
-    const channels = paymentMethod === 'bank_transfer' ? ['bank_transfer'] : undefined;
-
-    console.log('Paystack init params:', {
-      keyPreview: `${key.slice(0, 6)}...${key.slice(-4)}`,
-      email,
-      amountInKobo,
-      currency: 'NGN',
-      reference: transactionReference,
-      channels: channels || '(auto)',
+    paystackInstance.newTransaction({
+      metadata: {
+        custom_fields: [
+          {
+            display_name: 'Order Number',
+            variable_name: 'order_number',
+            value: order?.data.orderNumber || '',
+          },
+          {
+            display_name: 'Cart ID',
+            variable_name: 'cart_id',
+            value: cart?.data._id || '',
+          },
+          {
+            display_name: 'Order ID',
+            variable_name: 'order_id',
+            value: orderId || '',
+          },
+          {
+            display_name: 'Discount',
+            variable_name: 'discount',
+            value: order?.data.discount || 0,
+          },
+        ],
+      },
+      channels: [paymentMethod as 'card' | 'bank_transfer'],
+      key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '',
+      email: user.user?.email || '',
+      amount: (order?.data.total || 0) * 100,
+      onSuccess,
+      onError() {
+        enqueueSnackbar('Payment failed', { variant: 'error' });
+        router.push(`${ROUTES.PAYMENT_FAILED}?orderId=${orderId}`);
+      },
     });
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const paystackOptions: any = {
-      key,
-      email,
-      amount: amountInKobo,
-      currency: 'NGN',
-      reference: transactionReference,
-      ...(channels ? { channels } : {}),
-      onSuccess: (response: unknown) => {
-        console.log('Paystack success:', response);
-        onSuccess();
-      },
-      onCancel: () => {
-        enqueueSnackbar('Payment cancelled', { variant: 'info' });
-      },
-    };
-
-    paystackInstance.newTransaction(paystackOptions);
   };
 
   if (!orderId) {
@@ -102,7 +80,8 @@ export default function PaymentMethod({ onNext, onBack }: PaymentMethodProps) {
 
   return (
     <Box
-      component="div"
+      component="form"
+      onSubmit={(e) => handleSubmit(e, paymentMethod)}
       sx={{
         backgroundColor: '#111',
         borderRadius: '1rem',
@@ -230,69 +209,6 @@ export default function PaymentMethod({ onNext, onBack }: PaymentMethodProps) {
                 }
               />
             </Box>
-            <Box
-              sx={{
-                backgroundColor: '#0C0C0C',
-                borderRadius: '0.75rem',
-                border: '1px solid rgba(103, 97, 97, 0.30)',
-                padding: 2,
-              }}
-            >
-              <FormControlLabel
-                value="crypto"
-                control={
-                  <Radio
-                    sx={{
-                      color: '#7B7B7B',
-                      '&.Mui-checked': {
-                        color: '#0B6201',
-                      },
-                    }}
-                  />
-                }
-                label={
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 2,
-                    }}
-                  >
-                    <Image
-                      src="/assets/card-payment.svg"
-                      alt="Crypto Payment"
-                      width={32}
-                      height={32}
-                    />
-                    <Typography
-                      sx={{
-                        color: '#fff',
-                        fontFamily: 'Satoshi',
-                      }}
-                    >
-                      Crypto (BTC/USDT)
-                    </Typography>
-                  </Box>
-                }
-              />
-            </Box>
-
-            {paymentMethod === 'crypto' && orderId ? (
-              <Box sx={{ mt: 3 }}>
-                <CryptoPaymentForm
-                  orderId={orderId}
-                  amount={order?.data.total || 0}
-                  currency={'NGN'}
-                  onSuccess={() => {
-                    updateCartStatus({
-                      cartId: cart?.data._id || '',
-                      status: CartStatus.CHECKOUT_IN_PROGRESS,
-                    });
-                    onNext();
-                  }}
-                />
-              </Box>
-            ) : null}
           </RadioGroup>
         </Box>
 
@@ -344,8 +260,10 @@ export default function PaymentMethod({ onNext, onBack }: PaymentMethodProps) {
                   justifyContent: 'space-between',
                 }}
               >
-                <Typography sx={{ color: '#7B7B7B', fontFamily: 'Satoshi' }}>Delivery</Typography>
-                <Typography sx={{ color: '#FFF', fontFamily: 'Satoshi' }}>Digital</Typography>
+                <Typography sx={{ color: '#7B7B7B', fontFamily: 'Satoshi' }}>Shipping</Typography>
+                <Typography sx={{ color: '#FFF', fontFamily: 'Satoshi' }}>
+                  ₦{(order?.data.shippingCost || 0).toLocaleString()}
+                </Typography>
               </Box>
               {order?.data.discount ? (
                 <Box
@@ -410,7 +328,7 @@ export default function PaymentMethod({ onNext, onBack }: PaymentMethodProps) {
         }}
       >
         <Button
-          onClick={() => onBack(0)}
+          onClick={() => onBack(hasPhysicalItems ? 1 : 0)}
           sx={{
             order: { xs: 2, sm: 1 },
             backgroundColor: '#333',
@@ -424,27 +342,25 @@ export default function PaymentMethod({ onNext, onBack }: PaymentMethodProps) {
             },
           }}
         >
-          Back to Cart
+          Back to {hasPhysicalItems ? 'Shipping Details' : 'Cart'}
         </Button>
-        {paymentMethod !== 'crypto' && (
-          <Button
-            onClick={(e) => handleSubmit(e as unknown as React.FormEvent, paymentMethod)}
-            sx={{
-              order: { xs: 1, sm: 2 },
-              backgroundColor: '#0B6201',
-              color: '#FFF',
-              padding: '0.75rem 2rem',
-              borderRadius: '0.5rem',
-              fontFamily: 'ClashDisplay-Medium',
-              textTransform: 'none',
-              '&:hover': {
-                backgroundColor: 'rgba(42, 195, 24, 0.32)',
-              },
-            }}
-          >
-            Complete Order
-          </Button>
-        )}
+        <Button
+          type="submit"
+          sx={{
+            order: { xs: 1, sm: 2 },
+            backgroundColor: '#0B6201',
+            color: '#FFF',
+            padding: '0.75rem 2rem',
+            borderRadius: '0.5rem',
+            fontFamily: 'ClashDisplay-Medium',
+            textTransform: 'none',
+            '&:hover': {
+              backgroundColor: 'rgba(42, 195, 24, 0.32)',
+            },
+          }}
+        >
+          Complete Order
+        </Button>
       </Box>
     </Box>
   );

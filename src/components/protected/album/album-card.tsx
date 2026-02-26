@@ -78,13 +78,7 @@ export default function AlbumCard({
           borderRadius: '0.75rem',
         }}
       >
-        <Image 
-          src={albumImage} 
-          alt={albumName} 
-          fill 
-          unoptimized 
-          style={{ objectFit: isMobile ? 'cover' : 'contain' }} 
-        />
+        <Image src={albumImage} alt="Album 1" fill objectFit={isMobile ? 'cover' : 'contain'} />
       </Box>
       <Typography
         sx={{

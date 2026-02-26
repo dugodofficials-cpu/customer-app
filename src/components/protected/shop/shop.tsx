@@ -26,7 +26,6 @@ export default function Shop() {
     isLoading,
     isError,
   } = usePhysicalProducts({
-    type: ProductType.PHYSICAL,
     status: ProductStatus.ACTIVE,
     isActive: true,
     sortBy:
@@ -56,6 +55,10 @@ export default function Shop() {
     limit: 12,
     page,
   });
+
+  const shopProducts = (physicalProducts?.data || []).filter(
+    (p) => p.type === ProductType.PHYSICAL || p.type === ProductType.DIGITAL,
+  );
 
   const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => {
     setPage(value);
@@ -209,6 +212,21 @@ export default function Shop() {
       </Box>
     );
   }
+
+  if (!shopProducts || shopProducts.length === 0)
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '60vh',
+          color: '#fff',
+        }}
+      >
+        <Typography>No products found.</Typography>
+      </Box>
+    );
 
   return (
     <Box
@@ -400,16 +418,16 @@ export default function Shop() {
         </Box>
         <Box>
           <Grid container spacing={{ xs: 2, sm: 3, md: 4 }}>
-            {physicalProducts.data.map((product) => (
-              <Grid key={product._id} size={{ xs: 12, sm: 6, md: 4, lg: 4 }}>
+            {shopProducts.map((product) => (
+              <Grid key={product._id} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
                   <ProductCard
                     id={product._id}
                     productName={product.name}
-                    productType={product.type}
-                    price={product.price.toString()}
-                    productImage={product.images[0]}
+                    price={String(product.price)}
+                    productImage={product.images?.[0] || ''}
                     stockQuantity={product.stockQuantity || 0}
+                    productType={product.type}
                   />
                 </Box>
               </Grid>

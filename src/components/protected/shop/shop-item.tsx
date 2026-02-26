@@ -30,29 +30,20 @@ export default function ShopItem() {
   const [isImageOpen, setIsImageOpen] = useState(false);
   const isEbook = product?.data.type === ProductType.EBOOK;
 
-  const isBlackboxGameTicket =
-    (product?.data.name || '').toLowerCase().includes('blackbox') &&
-    (product?.data.name || '').toLowerCase().includes('ticket');
-
-  const isInCart = cart?.data.items.find((item) => {
-    if (isBlackboxGameTicket) {
-      return item.product._id === product?.data._id;
-    }
-
-    return (
+  const isInCart = cart?.data.items.find(
+    (item) =>
       item.product._id === product?.data._id &&
       item.selectedOptions?.size === size &&
       item.selectedOptions?.color === product?.data?.color &&
       item.quantity === quantity
-    );
-  });
+  );
 
   const isInCartEbook = !!cart?.data.items.find(
     (item) => item.product._id === productId && item.quantity === quantity
   );
 
   function handleBuyNow() {
-    if (product?.data.type === ProductType.PHYSICAL && !isBlackboxGameTicket) {
+    if (product?.data.type === ProductType.PHYSICAL) {
       if ((!size && product?.data.sizes.length) || !size) {
         enqueueSnackbar('Please select a size', { variant: 'error' });
         return;
@@ -60,10 +51,10 @@ export default function ShopItem() {
     }
     const item: Item = {
       product: productId,
-      quantity: isBlackboxGameTicket ? 1 : quantity,
+      quantity,
     };
 
-    if (!isEbook && !isBlackboxGameTicket) {
+    if (!isEbook) {
       item.selectedOptions = { size: size || '', color: product?.data.color || '' };
     }
 
@@ -300,7 +291,7 @@ export default function ShopItem() {
                   </Typography>
                 </Box>
 
-                {isEbook || isBlackboxGameTicket ? null : (
+                {isEbook ? null : (
                   <Box
                     sx={{
                       display: 'flex',
