@@ -11,6 +11,7 @@ import lockIcon from '../../../public/assets/lock.svg';
 import bgImageMobile from '../../../public/assets/startbg-sm.svg';
 import bgImage from '../../../public/assets/startbg.svg';
 import { useCountdown } from '@/hooks/user';
+import HowToPlayModal from '../ui/how-to-play-modal';
 
 export default function HomeComponent({ initialTimeLeft }: { initialTimeLeft: string }) {
   const theme = useTheme();
@@ -20,8 +21,21 @@ export default function HomeComponent({ initialTimeLeft }: { initialTimeLeft: st
   const { data } = useCountdown();
   const [timeLeft, setTimeLeft] = useState<string>(initialTimeLeft);
   const [isCountdownComplete, setIsCountdownComplete] = useState<boolean>(false);
+  const [isHowToPlayOpen, setIsHowToPlayOpen] = useState(false);
 
   const countdown = data?.data;
+
+  useEffect(() => {
+    // Check if the modal has been shown in this session
+    const hasShownModal = sessionStorage.getItem('hasShownHowToPlay');
+    if (!hasShownModal) {
+      const timer = setTimeout(() => {
+        setIsHowToPlayOpen(true);
+        sessionStorage.setItem('hasShownHowToPlay', 'true');
+      }, 1000); // Show after 1 second
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   useEffect(() => {
     if (countdown === null) {
@@ -208,6 +222,8 @@ export default function HomeComponent({ initialTimeLeft }: { initialTimeLeft: st
           Terms of Service
         </Link>
       </Box>
+
+      <HowToPlayModal open={isHowToPlayOpen} onClose={() => setIsHowToPlayOpen(false)} />
     </Grid>
   );
 }
