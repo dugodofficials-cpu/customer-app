@@ -13,7 +13,6 @@ import {
   ListItemIcon,
   ListItemText,
   useTheme,
-  useMediaQuery,
   Zoom,
 } from '@mui/material';
 import { X, PlayCircle, BookOpen, ShoppingCart, User, Download } from 'lucide-react';
@@ -25,7 +24,6 @@ interface HowToPlayModalProps {
 
 const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ open, onClose }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const steps = [
     {
@@ -167,7 +165,7 @@ const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ open, onClose }) => {
             },
           }}
         >
-          Got it, let's go!
+          Got it, let&apos;s go!
         </Button>
       </DialogContent>
     </Dialog>
