@@ -131,21 +131,21 @@ export default function LandingPage() {
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mx: 'auto', width: '100%' }}>
           <GradientButton
-            onClick={() => router.push(ROUTES.MUSIC)}
+            onClick={() => router.push(ROUTES.GAME.HOME)}
             sx={{
               fontFamily: 'Satoshi-Bold',
               fontSize: { xs: '0.875rem', sm: '0.9375rem', md: '1rem' }
             }}
             startIcon={
               <Image
-                src={'/assets/music-icon.svg'}
-                alt="Music"
+                src={'/assets/game-icon.svg'}
+                alt="Game"
                 width={isMobile ? 20 : 24}
                 height={isMobile ? 20 : 24}
               />
             }
           >
-            LISTEN NOW
+            BLACK BOX GAME
           </GradientButton>
 
           <GradientButton
@@ -167,21 +167,21 @@ export default function LandingPage() {
           </GradientButton>
 
           <GradientButton
-            onClick={() => router.push(ROUTES.GAME.HOME)}
+            onClick={() => router.push(ROUTES.MUSIC)}
             sx={{
               fontFamily: 'Satoshi-Bold',
               fontSize: { xs: '0.875rem', sm: '0.9375rem', md: '1rem' }
             }}
             startIcon={
               <Image
-                src={'/assets/game-icon.svg'}
-                alt="Game"
+                src={'/assets/music-icon.svg'}
+                alt="Music"
                 width={isMobile ? 20 : 24}
                 height={isMobile ? 20 : 24}
               />
             }
           >
-            BLACK BOX GAME
+            LISTEN NOW
           </GradientButton>
         </Box>
       </Box>
