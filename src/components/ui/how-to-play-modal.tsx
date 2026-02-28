@@ -83,8 +83,11 @@ const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ open, onClose }) => {
           position: 'absolute',
           top: 16,
           right: 16,
-          color: 'grey.500',
-          '&:hover': { color: 'white' },
+          color: 'white',
+          bgcolor: 'rgba(255, 255, 255, 0.08)',
+          '&:hover': {
+            bgcolor: 'rgba(255, 255, 255, 0.16)',
+          },
           zIndex: 1,
         }}
       >
