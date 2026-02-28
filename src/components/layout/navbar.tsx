@@ -48,9 +48,9 @@ export default function Navbar({ trigger }: { trigger: boolean }) {
   };
 
   const navLinks = [
-    { text: 'MUSIC', href: ROUTES.MUSIC },
+    { text: 'GAME', href: ROUTES.GAME.HOME },
     { text: 'SHOP', href: ROUTES.SHOP.HOME },
-    { text: 'GAMES', href: ROUTES.GAME.HOME },
+    { text: 'MUSIC', href: ROUTES.MUSIC },
   ];
   const navIcons = [
     {
