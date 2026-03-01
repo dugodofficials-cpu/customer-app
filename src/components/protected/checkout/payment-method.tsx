@@ -11,6 +11,7 @@ import { useGetOrder } from '@/hooks/order';
 import { useSnackbar } from 'notistack';
 import { useCart, useUpdateCartStatus } from '@/hooks/cart';
 import { CartStatus } from '@/lib/api/cart';
+import CryptoPaymentForm from '@/components/protected/checkout/crypto-payment-form';
 
 interface PaymentMethodProps {
   onNext: (step?: number) => void;
@@ -81,7 +82,13 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
   return (
     <Box
       component="form"
-      onSubmit={(e) => handleSubmit(e, paymentMethod)}
+      onSubmit={(e) => {
+        if (paymentMethod === 'crypto') {
+          e.preventDefault();
+          return;
+        }
+        handleSubmit(e, paymentMethod);
+      }}
       sx={{
         backgroundColor: '#111',
         borderRadius: '1rem',
@@ -209,7 +216,60 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
                 }
               />
             </Box>
+
+            <Box
+              sx={{
+                backgroundColor: '#0C0C0C',
+                borderRadius: '0.75rem',
+                border: '1px solid rgba(103, 97, 97, 0.30)',
+                padding: 2,
+              }}
+            >
+              <FormControlLabel
+                value="crypto"
+                control={
+                  <Radio
+                    sx={{
+                      color: '#7B7B7B',
+                      '&.Mui-checked': {
+                        color: '#0B6201',
+                      },
+                    }}
+                  />
+                }
+                label={
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2,
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        color: '#fff',
+                        fontFamily: 'Satoshi',
+                      }}
+                    >
+                      Crypto Payment
+                    </Typography>
+                  </Box>
+                }
+              />
+            </Box>
           </RadioGroup>
+
+          {paymentMethod === 'crypto' ? (
+            <CryptoPaymentForm
+              orderId={orderId}
+              amount={order?.data.total || 0}
+              currency="NGN"
+              onSuccess={() => {
+                updateCartStatus({ cartId: cart?.data._id || '', status: CartStatus.CHECKOUT_IN_PROGRESS });
+                onNext();
+              }}
+            />
+          ) : null}
         </Box>
 
         <Box
@@ -344,23 +404,25 @@ export default function PaymentMethod({ onNext, onBack, hasPhysicalItems }: Paym
         >
           Back to {hasPhysicalItems ? 'Shipping Details' : 'Cart'}
         </Button>
-        <Button
-          type="submit"
-          sx={{
-            order: { xs: 1, sm: 2 },
-            backgroundColor: '#0B6201',
-            color: '#FFF',
-            padding: '0.75rem 2rem',
-            borderRadius: '0.5rem',
-            fontFamily: 'ClashDisplay-Medium',
-            textTransform: 'none',
-            '&:hover': {
-              backgroundColor: 'rgba(42, 195, 24, 0.32)',
-            },
-          }}
-        >
-          Complete Order
-        </Button>
+        {paymentMethod === 'crypto' ? null : (
+          <Button
+            type="submit"
+            sx={{
+              order: { xs: 1, sm: 2 },
+              backgroundColor: '#0B6201',
+              color: '#FFF',
+              padding: '0.75rem 2rem',
+              borderRadius: '0.5rem',
+              fontFamily: 'ClashDisplay-Medium',
+              textTransform: 'none',
+              '&:hover': {
+                backgroundColor: 'rgba(42, 195, 24, 0.32)',
+              },
+            }}
+          >
+            Complete Order
+          </Button>
+        )}
       </Box>
     </Box>
   );
