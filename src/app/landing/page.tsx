@@ -316,7 +316,7 @@ export default function LandingPage() {
           --gold-dim: rgba(42, 195, 24, 0.28);
           --blood: #D91313;
           --dark: #000000;
-          --sand: #F5F5F5;
+          --sand: #000000;
           --text: #EDEDED;
           --dim: #7B7B7B;
 
@@ -354,7 +354,7 @@ export default function LandingPage() {
           align-items: center;
           justify-content: center;
           overflow: hidden;
-          background: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(42, 195, 24, 0.06) 0%, #ffffff 70%);
+          background: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(42, 195, 24, 0.06) 0%, #000000 70%);
         }
 
         .hero-bg {
@@ -643,8 +643,8 @@ export default function LandingPage() {
         .card {
           position: relative;
           padding: 2.5rem;
-          background: rgba(255, 255, 255, 0.85);
-          border: 1px solid rgba(0, 0, 0, 0.08);
+          background: rgba(0, 0, 0, 0.55);
+          border: 1px solid rgba(255, 255, 255, 0.12);
           overflow: hidden;
           transition: all 0.4s ease;
         }
@@ -670,7 +670,7 @@ export default function LandingPage() {
 
         .card.featured {
           border-color: rgba(42, 195, 24, 0.28);
-          background: rgba(255, 255, 255, 0.92);
+          background: rgba(0, 0, 0, 0.65);
         }
 
         .card.featured::after {
@@ -757,8 +757,8 @@ export default function LandingPage() {
         }
 
         .btn-gold {
-          background: #ffffff;
-          color: #0C0C0C;
+          background: rgba(0, 0, 0, 0.35);
+          color: var(--text);
           border: 1px solid rgba(42, 195, 24, 0.35);
           box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         }
@@ -784,8 +784,8 @@ export default function LandingPage() {
 
         .btn-outline {
           background: transparent;
-          color: #0C0C0C;
-          border: 1px solid rgba(0, 0, 0, 0.18);
+          color: var(--text);
+          border: 1px solid rgba(255, 255, 255, 0.16);
         }
 
         .btn-outline:hover {
@@ -801,9 +801,9 @@ export default function LandingPage() {
 
         .quote-section {
           padding: 6rem 2rem;
-          background: rgba(255, 255, 255, 0.7);
-          border-top: 1px solid rgba(0, 0, 0, 0.06);
-          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+          background: rgba(0, 0, 0, 0.35);
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
           text-align: center;
         }
 
@@ -898,7 +898,7 @@ export default function LandingPage() {
 
         footer {
           padding: 3rem 2rem;
-          border-top: 1px solid rgba(0, 0, 0, 0.06);
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
           display: flex;
           justify-content: space-between;
           align-items: center;
@@ -945,7 +945,7 @@ export default function LandingPage() {
 
         .announce {
           background: linear-gradient(90deg, var(--dark) 0%, rgba(42, 195, 24, 0.07) 50%, var(--dark) 100%);
-          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
           padding: 0.75rem;
           text-align: center;
           font-family: ${cinzel.style.fontFamily};
