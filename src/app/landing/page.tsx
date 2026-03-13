@@ -445,10 +445,7 @@ export default function LandingPage() {
           font-weight: 900;
           line-height: 0.9;
           letter-spacing: -0.02em;
-          color: transparent;
-          background: linear-gradient(160deg, #111111 0%, #0C0C0C 55%, #2AC318 120%);
-          -webkit-background-clip: text;
-          background-clip: text;
+          color: var(--text);
           position: relative;
           margin-bottom: 0.2em;
         }
