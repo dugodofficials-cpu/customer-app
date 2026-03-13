@@ -7,6 +7,8 @@ import {
   getProductsByAlbum,
   PaginatedDigitalProducts,
   PaginatedProducts,
+  previewMedia,
+  PreviewMediaResponse,
   ProductById,
   ProductsQueryParams,
   sendUploadCompletionEmail,
@@ -22,6 +24,22 @@ export const useProducts = (params: ProductsQueryParams = {}) => {
   return useQuery<PaginatedDigitalProducts, Error>({
     queryKey: ['products', params],
     queryFn: () => getDigitalAlbums(params),
+  });
+};
+
+export const usePreviewMedia = () => {
+  return useMutation<PreviewMediaResponse, Error, { id: string }>({
+    mutationFn: (params: { id: string }) => previewMedia(params.id),
+    onSuccess: async (data, params) => {
+      const mediaData = {
+        url: data.data.url,
+        expiresAt: new Date(Date.now() + data.data.expiresIn * 1000).getTime(),
+      };
+      localStorage.setItem(`dugod_preview_${params.id}`, JSON.stringify(mediaData));
+    },
+    onError: () => {
+      enqueueSnackbar('Failed to load preview', { variant: 'error' });
+    },
   });
 };
 
@@ -124,6 +142,28 @@ export const getSavedMediaUrl = (id: string): string | null => {
     return mediaData.url;
   } catch {
     localStorage.removeItem(`dugod_media_${id}`);
+    return null;
+  }
+};
+
+export const getSavedPreviewUrl = (id: string): string | null => {
+  if (typeof window === 'undefined') return null;
+
+  const storedData = localStorage.getItem(`dugod_preview_${id}`);
+  if (!storedData) return null;
+
+  try {
+    const mediaData = JSON.parse(storedData);
+    const now = new Date().getTime();
+
+    if (now > mediaData.expiresAt) {
+      localStorage.removeItem(`dugod_preview_${id}`);
+      return null;
+    }
+
+    return mediaData.url;
+  } catch {
+    localStorage.removeItem(`dugod_preview_${id}`);
     return null;
   }
 };

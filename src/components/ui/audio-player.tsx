@@ -6,45 +6,100 @@ import { useEffect, useRef, useState } from 'react';
 interface AudioPlayerProps {
   audioUrl: string;
   onClose?: () => void;
+  previewDurationSeconds?: number;
 }
 
-export default function AudioPlayer({ audioUrl, onClose }: AudioPlayerProps) {
+export default function AudioPlayer({ audioUrl, onClose, previewDurationSeconds }: AudioPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const previewStopTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.addEventListener('loadedmetadata', () => {
-        setDuration(audioRef.current?.duration || 0);
-      });
+    const audio = audioRef.current;
+    if (!audio) return;
 
-      audioRef.current.addEventListener('timeupdate', () => {
-        setCurrentTime(audioRef.current?.currentTime || 0);
-      });
+    const onLoadedMetadata = () => {
+      const rawDuration = audio.duration || 0;
+      const effectiveDuration = previewDurationSeconds
+        ? Math.min(rawDuration, previewDurationSeconds)
+        : rawDuration;
+      setDuration(effectiveDuration);
+    };
 
-      audioRef.current.addEventListener('ended', () => {
+    const onTimeUpdate = () => {
+      const t = audio.currentTime || 0;
+      setCurrentTime(t);
+      if (previewDurationSeconds && t >= previewDurationSeconds) {
+        audio.pause();
+        audio.currentTime = 0;
         setIsPlaying(false);
         setCurrentTime(0);
-      });
-    }
+      }
+    };
+
+    const onEnded = () => {
+      setIsPlaying(false);
+      setCurrentTime(0);
+    };
+
+    audio.addEventListener('loadedmetadata', onLoadedMetadata);
+    audio.addEventListener('timeupdate', onTimeUpdate);
+    audio.addEventListener('ended', onEnded);
 
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
+      audio.removeEventListener('loadedmetadata', onLoadedMetadata);
+      audio.removeEventListener('timeupdate', onTimeUpdate);
+      audio.removeEventListener('ended', onEnded);
+      if (previewStopTimeoutRef.current) {
+        window.clearTimeout(previewStopTimeoutRef.current);
+        previewStopTimeoutRef.current = null;
+      }
+      audio.pause();
+      audio.currentTime = 0;
+    };
+  }, [previewDurationSeconds]);
 
-        audioRef.current.currentTime = 0;
+  useEffect(() => {
+    return () => {
+      if (previewStopTimeoutRef.current) {
+        window.clearTimeout(previewStopTimeoutRef.current);
+        previewStopTimeoutRef.current = null;
       }
     };
   }, []);
+
+  const schedulePreviewStop = () => {
+    if (!previewDurationSeconds) return;
+    if (previewStopTimeoutRef.current) {
+      window.clearTimeout(previewStopTimeoutRef.current);
+      previewStopTimeoutRef.current = null;
+    }
+    const audio = audioRef.current;
+    if (!audio) return;
+    const remainingMs = Math.max(0, (previewDurationSeconds - (audio.currentTime || 0)) * 1000);
+    previewStopTimeoutRef.current = window.setTimeout(() => {
+      const a = audioRef.current;
+      if (!a) return;
+      a.pause();
+      a.currentTime = 0;
+      setIsPlaying(false);
+      setCurrentTime(0);
+    }, remainingMs);
+  };
 
   const togglePlay = () => {
     if (audioRef.current) {
       if (isPlaying) {
         audioRef.current.pause();
+        if (previewStopTimeoutRef.current) {
+          window.clearTimeout(previewStopTimeoutRef.current);
+          previewStopTimeoutRef.current = null;
+        }
       } else {
         audioRef.current.play();
+        schedulePreviewStop();
       }
       setIsPlaying(!isPlaying);
     }
@@ -53,8 +108,12 @@ export default function AudioPlayer({ audioUrl, onClose }: AudioPlayerProps) {
   const handleSeek = (_: Event, newValue: number | number[]) => {
     const seekTime = typeof newValue === 'number' ? newValue : newValue[0];
     if (audioRef.current) {
-      audioRef.current.currentTime = seekTime;
-      setCurrentTime(seekTime);
+      const clampedSeekTime = previewDurationSeconds
+        ? Math.min(seekTime, previewDurationSeconds)
+        : seekTime;
+      audioRef.current.currentTime = clampedSeekTime;
+      setCurrentTime(clampedSeekTime);
+      schedulePreviewStop();
     }
   };
 

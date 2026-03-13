@@ -76,6 +76,8 @@ export interface Product {
 
   digitalDeliveryInfo?: DigitalDeliveryInfo;
 
+  previewUrl?: string;
+
   createdAt: Date;
   updatedAt: Date;
   isActive: boolean;
@@ -99,6 +101,14 @@ export interface ProductById {
 }
 
 export interface DownloadMediaResponse {
+  message: string;
+  data: {
+    url: string;
+    expiresIn: number;
+  };
+}
+
+export interface PreviewMediaResponse {
   message: string;
   data: {
     url: string;
@@ -186,6 +196,10 @@ export const getProductById = (id: string): Promise<ProductById> => {
 
 export const downloadMedia = (id: string) => {
   return apiClient<DownloadMediaResponse>(`/products/${id}/download`);
+};
+
+export const previewMedia = (id: string) => {
+  return apiClient<PreviewMediaResponse>(`/products/${id}/preview`);
 };
 
 export interface SendEmailNotificationParams {

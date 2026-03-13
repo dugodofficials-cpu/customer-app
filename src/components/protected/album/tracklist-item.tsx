@@ -7,7 +7,7 @@ import AudioPlayer from '@/components/ui/audio-player';
 import { useGetUserOrders } from '@/hooks/order';
 import { Product, ProductType } from '@/lib/api/products';
 import { useUser } from '@/hooks/user';
-import { getSavedMediaUrl, useDownloadMedia } from '@/hooks/products';
+import { getSavedMediaUrl, getSavedPreviewUrl, useDownloadMedia, usePreviewMedia } from '@/hooks/products';
 
 export default function TracklistItem({
   isLast,
@@ -31,6 +31,7 @@ export default function TracklistItem({
   const [isPlaying, setIsPlaying] = useState(false);
   const { user } = useUser();
   const { mutate: downloadMedia, isPending: isDownloading } = useDownloadMedia();
+  const { mutate: previewMedia, isPending: isPreviewing } = usePreviewMedia();
   const [downloadedMedia, setDownloadedMedia] = useState<string | null>(null);
   const { data: orders } = useGetUserOrders(user?._id || '', {
     page: 1,
@@ -63,12 +64,32 @@ export default function TracklistItem({
   };
 
   const handleTooltipOpen = () => {
-    if (!url) {
+    if (isPurchased && !url) {
       setTooltipOpen(true);
     }
   };
 
   const handleMedia = (id: string) => {
+    if (!isPurchased) {
+      const savedPreviewUrl = getSavedPreviewUrl(id);
+      if (savedPreviewUrl) {
+        setDownloadedMedia(savedPreviewUrl);
+        setIsPlaying(true);
+        return;
+      }
+
+      previewMedia(
+        { id },
+        {
+          onSuccess: (data) => {
+            setDownloadedMedia(data.data.url);
+            setIsPlaying(true);
+          },
+        }
+      );
+      return;
+    }
+
     if (!url) {
       handleAddToCart();
       handleTooltipClose();
@@ -179,11 +200,15 @@ export default function TracklistItem({
           justifyContent: { xs: 'flex-start', md: 'flex-end' },
         }}
       >
-        {isPlaying && !isDownloading ? (
-          <AudioPlayer audioUrl={downloadedMedia || url} onClose={() => setIsPlaying(false)} />
+        {isPlaying && !isDownloading && !isPreviewing ? (
+          <AudioPlayer
+            audioUrl={downloadedMedia || url}
+            onClose={() => setIsPlaying(false)}
+            previewDurationSeconds={isPurchased ? undefined : 15}
+          />
         ) : (
           <Tooltip
-            title={!url ? 'Purchase this track to unlock playback' : ''}
+            title={isPurchased && !url ? 'Playback unavailable for this track right now' : ''}
             arrow
             placement="top"
             open={tooltipOpen}
@@ -229,14 +254,14 @@ export default function TracklistItem({
                   },
                 }}
                 startIcon={
-                  isDownloading ? (
+                  isDownloading || isPreviewing ? (
                     <CircularProgress size={24} />
                   ) : (
                     <Image src="/assets/play.svg" alt="play" width={24} height={24} />
                   )
                 }
               >
-                {isDownloading ? '...' : 'Play'}
+                {isDownloading || isPreviewing ? '...' : 'Play'}
               </Button>
             </Box>
           </Tooltip>
