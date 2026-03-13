@@ -315,10 +315,10 @@ export default function LandingPage() {
           --gold-light: #F3FFF5;
           --gold-dim: rgba(42, 195, 24, 0.28);
           --blood: #D91313;
-          --dark: #FFFFFF;
+          --dark: #000000;
           --sand: #F5F5F5;
-          --text: #0C0C0C;
-          --dim: #6B7280;
+          --text: #EDEDED;
+          --dim: #7B7B7B;
 
           background: var(--dark);
           color: var(--text);
@@ -982,7 +982,7 @@ export default function LandingPage() {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          background: linear-gradient(to bottom, rgba(255, 255, 255, 0.86), transparent);
+          background: linear-gradient(to bottom, rgba(0, 0, 0, 0.86), transparent);
           backdrop-filter: blur(4px);
         }
 
