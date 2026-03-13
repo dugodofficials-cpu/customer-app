@@ -3,6 +3,10 @@
 import { useEffect, useMemo, type CSSProperties } from 'react';
 import { Cinzel, Cinzel_Decorative, Crimson_Pro } from 'next/font/google';
 
+type ParticleStyle = CSSProperties & {
+  ['--drift']?: string;
+};
+
 const cinzelDecorative = Cinzel_Decorative({
   weight: ['700', '900'],
   subsets: ['latin'],
@@ -104,11 +108,11 @@ export default function LandingPage() {
                   left: `${p.left}%`,
                   animationDuration: `${p.duration}s`,
                   animationDelay: `${p.delay}s`,
-                  ['--drift' as any]: `${p.drift}px`,
+                  ['--drift']: `${p.drift}px`,
                   width: `${p.size}px`,
                   height: `${p.size}px`,
                   opacity: p.opacity,
-                } as CSSProperties
+                } as ParticleStyle
               }
             />
           ))}
