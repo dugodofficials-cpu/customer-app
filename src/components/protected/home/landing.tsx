@@ -127,6 +127,70 @@ export default function LandingPage() {
             <br />
             Real stories. Raw sound.
           </Typography>
+
+          <Box
+            sx={{
+              width: '100%',
+              maxWidth: '600px',
+              mx: 'auto',
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+              gap: 2,
+              mb: { xs: 2, sm: 3, md: 4 },
+            }}
+          >
+            <Box
+              sx={{
+                borderRadius: '0.75rem',
+                overflow: 'hidden',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                backgroundColor: 'rgba(255, 255, 255, 0.04)',
+              }}
+            >
+              <Box sx={{ position: 'relative', width: '100%', paddingTop: '56.25%' }}>
+                <Box
+                  component="iframe"
+                  src="https://www.youtube.com/embed/VIDEO_ID_1"
+                  title="Music Player 1"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  sx={{
+                    position: 'absolute',
+                    inset: 0,
+                    width: '100%',
+                    height: '100%',
+                    border: 0,
+                  }}
+                />
+              </Box>
+            </Box>
+
+            <Box
+              sx={{
+                borderRadius: '0.75rem',
+                overflow: 'hidden',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                backgroundColor: 'rgba(255, 255, 255, 0.04)',
+              }}
+            >
+              <Box sx={{ position: 'relative', width: '100%', paddingTop: '56.25%' }}>
+                <Box
+                  component="iframe"
+                  src="https://www.youtube.com/embed/VIDEO_ID_2"
+                  title="Music Player 2"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  sx={{
+                    position: 'absolute',
+                    inset: 0,
+                    width: '100%',
+                    height: '100%',
+                    border: 0,
+                  }}
+                />
+              </Box>
+            </Box>
+          </Box>
         </Box>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mx: 'auto', width: '100%' }}>

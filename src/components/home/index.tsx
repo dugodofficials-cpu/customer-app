@@ -11,31 +11,36 @@ import lockIcon from '../../../public/assets/lock.svg';
 import bgImageMobile from '../../../public/assets/startbg-sm.svg';
 import bgImage from '../../../public/assets/startbg.svg';
 import { useCountdown } from '@/hooks/user';
-import HowToPlayModal from '../ui/how-to-play-modal';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function HomeComponent({ initialTimeLeft }: { initialTimeLeft: string }) {
   const theme = useTheme();
   const router = useRouter();
+  const { isAuthenticated } = useAuth();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isShortScreen = useMediaQuery('(max-height: 667px)'); // iPhone SE height
   const { data } = useCountdown();
   const [timeLeft, setTimeLeft] = useState<string>(initialTimeLeft);
   const [isCountdownComplete, setIsCountdownComplete] = useState<boolean>(false);
-  const [isHowToPlayOpen, setIsHowToPlayOpen] = useState(false);
 
   const countdown = data?.data;
 
-  useEffect(() => {
-    // Check if the modal has been shown in this session
-    const hasShownModal = sessionStorage.getItem('hasShownHowToPlay');
-    if (!hasShownModal) {
-      const timer = setTimeout(() => {
-        setIsHowToPlayOpen(true);
-        sessionStorage.setItem('hasShownHowToPlay', 'true');
-      }, 1000); // Show after 1 second
-      return () => clearTimeout(timer);
+  const handleEnterField = () => {
+    if (!isCountdownComplete) return;
+
+    const nextPath = typeof window !== 'undefined' ? window.sessionStorage.getItem('bb_next') : null;
+    if (nextPath) {
+      if (isAuthenticated) {
+        window.sessionStorage.removeItem('bb_next');
+        router.push(nextPath);
+        return;
+      }
+      router.push(ROUTES.AUTH.SIGN_UP);
+      return;
     }
-  }, []);
+
+    router.push(ROUTES.AUTH.SIGN_UP);
+  };
 
   useEffect(() => {
     if (countdown === null) {
@@ -158,7 +163,7 @@ export default function HomeComponent({ initialTimeLeft }: { initialTimeLeft: st
           </Typography>
 
           <Button
-            onClick={() => isCountdownComplete && router.push(ROUTES.AUTH.SIGN_UP)}
+            onClick={handleEnterField}
             startIcon={<Image src={lockIcon} alt="lock" width={20} height={20} />}
             variant="contained"
             color="primary"
@@ -223,7 +228,6 @@ export default function HomeComponent({ initialTimeLeft }: { initialTimeLeft: st
         </Link>
       </Box>
 
-      <HowToPlayModal open={isHowToPlayOpen} onClose={() => setIsHowToPlayOpen(false)} />
     </Grid>
   );
 }

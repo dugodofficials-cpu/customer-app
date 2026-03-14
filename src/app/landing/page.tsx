@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, type CSSProperties } from 'react';
 import { Cinzel, Cinzel_Decorative, Crimson_Pro } from 'next/font/google';
+import { useRouter } from 'next/navigation';
+import { ROUTES } from '@/util/paths';
 
 type ParticleStyle = CSSProperties & {
   ['--drift']?: string;
@@ -33,6 +35,8 @@ type Particle = {
 };
 
 export default function LandingPage() {
+  const router = useRouter();
+
   const particles = useMemo<Particle[]>(() => {
     return Array.from({ length: 40 }).map(() => ({
       left: Math.random() * 100,
@@ -43,6 +47,13 @@ export default function LandingPage() {
       opacity: 0.2 + Math.random() * 0.5,
     }));
   }, []);
+
+  const startEnterFieldFlow = (nextPath: string) => {
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem('bb_next', nextPath);
+    }
+    router.push(ROUTES.HOME);
+  };
 
   useEffect(() => {
     const els = Array.from(document.querySelectorAll('.bb-root .reveal'));
@@ -86,11 +97,6 @@ export default function LandingPage() {
           <li>
             <a href="#tickets">Get Access</a>
           </li>
-          <li>
-            <a href="https://www.dugodofficial.com/home" target="_blank" rel="noreferrer">
-              DuGod
-            </a>
-          </li>
         </ul>
       </nav>
 
@@ -120,17 +126,21 @@ export default function LandingPage() {
 
         <div className="hero-content">
           <p className="eyebrow">DuGod Presents</p>
-          <h1 className="hero-title">BLACKBOX</h1>
-          <p className="hero-subtitle">The Album You Play</p>
+          <h1 className="hero-title">
+            Albums.
+            <br />
+            Art. Apparel. A game. One mystery
+          </h1>
+          <p className="hero-subtitle">The Multiverse You Play</p>
           <p className="hero-tagline">
-            A mystery hidden inside a music album.
+            a mystery hidden inside the creators creations.
             <br />
             Decode the clues. Follow the sound. Uncover what lies beneath.
           </p>
           <div className="hero-buttons">
-            <a href="#tickets" className="btn btn-gold">
+            <button type="button" className="btn btn-gold" onClick={() => startEnterFieldFlow(ROUTES.SHOP.HOME)}>
               Get Your Ticket
-            </a>
+            </button>
             <a href="#what" className="btn btn-outline">
               Learn the Mystery
             </a>
@@ -145,16 +155,9 @@ export default function LandingPage() {
 
       <div id="what" className="what-wrapper">
         <div className="section">
-          <p className="section-label reveal">What Is This</p>
-          <h2 className="section-title reveal reveal-delay-1">
-            An album.
-            <br />
-            A game.
-            <br />
-            One mystery.
-          </h2>
+          <p className="section-label reveal">Learn the mystery</p>
           <p className="section-body reveal reveal-delay-2">
-            BLACKBOX is unlike anything you&apos;ve experienced. It&apos;s a full music album by DuGod — but hidden inside every track, lyric, and sound is a trail of cryptic clues leading to an ultimate secret.
+            BLACKBOX is unlike anything you&apos;ve experienced. It&apos;s an interactive multiverse by DuGod. Hidden in the music, the art and apparel is a trail of cryptic clues leading to an ultimate secret.
             <br />
             <br />
             Think <em>Ready Player One</em> — but real. Play a text-based adventure game that lives within the music itself. Each song is a level. Each lyric is a key. The album is your map.
@@ -190,7 +193,7 @@ export default function LandingPage() {
               <div className="step-num">03</div>
               <div className="step-title">Play the Game</div>
               <p className="step-body">
-                Enter the text-based world. Your knowledge of the album determines how far you go. Every answer unlocks a door.
+                Enter the blackbox multiverse by text input. Your knowledge of the albums determines how far you go. Every answer unlocks a door.
               </p>
             </div>
             <div className="step reveal reveal-delay-3">
@@ -229,19 +232,14 @@ export default function LandingPage() {
               Access <span>the field</span>
             </div>
             <ul className="card-features">
-              <li>Full access to the text-based game</li>
+              <li>Full access to the game</li>
               <li>Compete for the prize hidden in the box</li>
               <li>Leaderboard &amp; progress tracking</li>
               <li>Community access — collaborate or compete</li>
             </ul>
-            <a
-              href="https://www.dugodofficial.com/home"
-              target="_blank"
-              rel="noreferrer"
-              className="btn btn-outline btn-full"
-            >
+            <button type="button" className="btn btn-outline btn-full" onClick={() => startEnterFieldFlow(ROUTES.SHOP.HOME)}>
               Buy Ticket
-            </a>
+            </button>
           </div>
 
           <div className="card featured reveal reveal-delay-2">
@@ -251,20 +249,15 @@ export default function LandingPage() {
               Full Bundle <span>deepest access</span>
             </div>
             <ul className="card-features">
-              <li>The complete BLACKBOX music album</li>
+              <li>The complete BLACKBOX albums, Books &amp; Ticket</li>
               <li>Album contains embedded in-game clues</li>
               <li>Full game ticket included</li>
               <li>Exclusive album-only puzzle layers</li>
               <li>Priority access &amp; early chapter unlocks</li>
             </ul>
-            <a
-              href="https://www.dugodofficial.com/home"
-              target="_blank"
-              rel="noreferrer"
-              className="btn btn-gold btn-full"
-            >
+            <button type="button" className="btn btn-gold btn-full" onClick={() => startEnterFieldFlow(ROUTES.SHOP.HOME)}>
               Get the Album
-            </a>
+            </button>
           </div>
         </div>
       </div>
@@ -284,14 +277,6 @@ export default function LandingPage() {
           <div className="cta-buttons reveal reveal-delay-2">
             <a href="https://www.dugodofficial.com/home" target="_blank" rel="noreferrer" className="btn btn-gold">
               Play Now
-            </a>
-            <a
-              href="https://www.dugodofficial.com/home"
-              target="_blank"
-              rel="noreferrer"
-              className="btn btn-outline"
-            >
-              Visit DuGod
             </a>
           </div>
         </div>

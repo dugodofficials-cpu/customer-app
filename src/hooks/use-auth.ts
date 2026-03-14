@@ -41,6 +41,16 @@ export function useAuth() {
       cookies.setAuthToken(response.token);
     }
     queryClient.setQueryData(['auth'], response);
+
+    if (typeof window !== 'undefined') {
+      const nextPath = window.sessionStorage.getItem('bb_next');
+      if (nextPath) {
+        window.sessionStorage.removeItem('bb_next');
+        router.push(nextPath);
+        return;
+      }
+    }
+
     router.push(ROUTES.USER.HOME);
   };
 
