@@ -426,10 +426,10 @@ export default function LandingPage() {
 
         .hero-title {
           font-family: ${cinzelDecorative.style.fontFamily};
-          font-size: clamp(4rem, 12vw, 9rem);
-          font-weight: 900;
-          line-height: 0.9;
-          letter-spacing: -0.02em;
+          font-size: clamp(2.5rem, 8vw, 4.5rem);
+          font-weight: 700;
+          line-height: 1.1;
+          letter-spacing: -0.01em;
           color: var(--text);
           position: relative;
           margin-bottom: 0.2em;
