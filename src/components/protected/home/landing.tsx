@@ -133,18 +133,20 @@ export default function LandingPage() {
               width: '100%',
               maxWidth: '600px',
               mx: 'auto',
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-              gap: 2,
-              mb: { xs: 2, sm: 3, md: 4 },
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 3,
+              mb: { xs: 3, sm: 4, md: 6 },
             }}
           >
             <Box
               sx={{
+                width: '100%',
                 borderRadius: '0.75rem',
                 overflow: 'hidden',
                 border: '1px solid rgba(255, 255, 255, 0.12)',
                 backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
               }}
             >
               <Box sx={{ position: 'relative', width: '100%', paddingTop: '56.25%' }}>
@@ -167,10 +169,12 @@ export default function LandingPage() {
 
             <Box
               sx={{
+                width: '100%',
                 borderRadius: '0.75rem',
                 overflow: 'hidden',
                 border: '1px solid rgba(255, 255, 255, 0.12)',
                 backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
               }}
             >
               <Box sx={{ position: 'relative', width: '100%', paddingTop: '56.25%' }}>
