@@ -13,6 +13,7 @@ export default function AudioPlayer({ audioUrl, onClose, previewDurationSeconds 
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [isReady, setIsReady] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const previewStopTimeoutRef = useRef<number | null>(null);
 
@@ -22,20 +23,43 @@ export default function AudioPlayer({ audioUrl, onClose, previewDurationSeconds 
 
     const onLoadedMetadata = () => {
       const rawDuration = audio.duration || 0;
-      const effectiveDuration = previewDurationSeconds
-        ? Math.min(rawDuration, previewDurationSeconds)
-        : rawDuration;
-      setDuration(effectiveDuration);
+      
+      if (previewDurationSeconds && rawDuration > previewDurationSeconds) {
+        // Start from middle of the song if it's a preview
+        const startTime = Math.max(0, (rawDuration / 2) - (previewDurationSeconds / 2));
+        audio.currentTime = startTime;
+        setCurrentTime(0); // Reset display time to 0 relative to start
+        setDuration(previewDurationSeconds);
+      } else {
+        setDuration(rawDuration);
+      }
+      setIsReady(true);
     };
 
     const onTimeUpdate = () => {
+      const rawDuration = audio.duration || 0;
       const t = audio.currentTime || 0;
-      setCurrentTime(t);
-      if (previewDurationSeconds && t >= previewDurationSeconds) {
-        audio.pause();
-        audio.currentTime = 0;
-        setIsPlaying(false);
-        setCurrentTime(0);
+      
+      if (previewDurationSeconds && rawDuration > previewDurationSeconds) {
+        const startTime = Math.max(0, (rawDuration / 2) - (previewDurationSeconds / 2));
+        const relativeTime = t - startTime;
+        
+        setCurrentTime(Math.max(0, relativeTime));
+
+        if (relativeTime >= previewDurationSeconds) {
+          audio.pause();
+          audio.currentTime = startTime;
+          setIsPlaying(false);
+          setCurrentTime(0);
+        }
+      } else {
+        setCurrentTime(t);
+        if (previewDurationSeconds && t >= previewDurationSeconds) {
+          audio.pause();
+          audio.currentTime = 0;
+          setIsPlaying(false);
+          setCurrentTime(0);
+        }
       }
     };
 
@@ -78,15 +102,32 @@ export default function AudioPlayer({ audioUrl, onClose, previewDurationSeconds 
     }
     const audio = audioRef.current;
     if (!audio) return;
-    const remainingMs = Math.max(0, (previewDurationSeconds - (audio.currentTime || 0)) * 1000);
+
+    const rawDuration = audio.duration || 0;
+    let remainingSeconds = 0;
+
+    if (rawDuration > previewDurationSeconds) {
+      const startTime = Math.max(0, (rawDuration / 2) - (previewDurationSeconds / 2));
+      const relativeTime = audio.currentTime - startTime;
+      remainingSeconds = Math.max(0, previewDurationSeconds - relativeTime);
+    } else {
+      remainingSeconds = Math.max(0, previewDurationSeconds - audio.currentTime);
+    }
+
     previewStopTimeoutRef.current = window.setTimeout(() => {
       const a = audioRef.current;
       if (!a) return;
       a.pause();
-      a.currentTime = 0;
+      
+      if (rawDuration > previewDurationSeconds) {
+        a.currentTime = Math.max(0, (rawDuration / 2) - (previewDurationSeconds / 2));
+      } else {
+        a.currentTime = 0;
+      }
+      
       setIsPlaying(false);
       setCurrentTime(0);
-    }, remainingMs);
+    }, remainingSeconds * 1000);
   };
 
   const togglePlay = () => {
@@ -106,13 +147,22 @@ export default function AudioPlayer({ audioUrl, onClose, previewDurationSeconds 
   };
 
   const handleSeek = (_: Event, newValue: number | number[]) => {
-    const seekTime = typeof newValue === 'number' ? newValue : newValue[0];
+    const seekValue = typeof newValue === 'number' ? newValue : newValue[0];
     if (audioRef.current) {
-      const clampedSeekTime = previewDurationSeconds
-        ? Math.min(seekTime, previewDurationSeconds)
-        : seekTime;
-      audioRef.current.currentTime = clampedSeekTime;
-      setCurrentTime(clampedSeekTime);
+      const rawDuration = audioRef.current.duration || 0;
+      
+      if (previewDurationSeconds && rawDuration > previewDurationSeconds) {
+        const startTime = Math.max(0, (rawDuration / 2) - (previewDurationSeconds / 2));
+        const clampedSeek = Math.min(seekValue, previewDurationSeconds);
+        audioRef.current.currentTime = startTime + clampedSeek;
+        setCurrentTime(clampedSeek);
+      } else {
+        const clampedSeek = previewDurationSeconds
+          ? Math.min(seekValue, previewDurationSeconds)
+          : seekValue;
+        audioRef.current.currentTime = clampedSeek;
+        setCurrentTime(clampedSeek);
+      }
       schedulePreviewStop();
     }
   };
