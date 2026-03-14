@@ -8,6 +8,16 @@ type RequestOptions = {
   body?: unknown;
 };
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
+function buildRequestUrl(endpoint: string): string {
+  const cleanedEndpoint = endpoint.replace(/^\//, '');
+  if (API_BASE_URL) {
+    return `${API_BASE_URL.replace(/\/$/, '')}/${cleanedEndpoint}`;
+  }
+  return `/api/${cleanedEndpoint}`;
+}
+
 const axiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
@@ -43,7 +53,7 @@ export async function apiClient<T>(endpoint: string, options: RequestOptions = {
   const { method = 'GET', headers = {}, body } = options;
 
   const response = await axiosInstance.request<T>({
-    url: `/api/${endpoint}`,
+    url: buildRequestUrl(endpoint),
     method,
     headers,
     data: body,
