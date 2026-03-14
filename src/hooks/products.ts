@@ -68,7 +68,7 @@ export const useProductsByAlbum = (albumName: string) => {
       });
       router.push(ROUTES.MUSIC);
     }
-  }, [query.isError, query.error]);
+  }, [query.isError, query.error, router]);
 
   return query;
 };
@@ -88,7 +88,7 @@ export const useProductById = (id: string) => {
       enqueueSnackbar('Failed to load product. Please try again later.', { variant: 'error' });
       router.push(ROUTES.SHOP.HOME);
     }
-  }, [query.isError, query.error]);
+  }, [query.isError, query.error, router]);
 
   return query;
 };

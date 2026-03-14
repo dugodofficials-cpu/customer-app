@@ -13,7 +13,6 @@ export default function AudioPlayer({ audioUrl, onClose, previewDurationSeconds 
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [isReady, setIsReady] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const previewStopTimeoutRef = useRef<number | null>(null);
 
@@ -33,7 +32,6 @@ export default function AudioPlayer({ audioUrl, onClose, previewDurationSeconds 
       } else {
         setDuration(rawDuration);
       }
-      setIsReady(true);
     };
 
     const onTimeUpdate = () => {

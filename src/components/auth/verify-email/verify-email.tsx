@@ -19,7 +19,7 @@ export default function VerifyEmail() {
     if (token) {
       verifyEmailMutation.mutate(token);
     }
-  }, [token]);
+  }, [token, verifyEmailMutation]);
 
   const handleResendEmail = () => {
     if (email) {
