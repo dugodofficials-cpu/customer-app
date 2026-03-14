@@ -109,7 +109,7 @@ export default function LandingPage() {
             variant="h6"
             sx={{
               color: '#C4C4C4',
-              maxWidth: '600px',
+              maxWidth: '800px',
               mx: 'auto',
               mb: { xs: 2, sm: 3, md: 4 },
               fontFamily: 'Satoshi-Bold',
@@ -131,7 +131,7 @@ export default function LandingPage() {
           <Box
             sx={{
               width: '100%',
-              maxWidth: '600px',
+              maxWidth: '800px',
               mx: 'auto',
               display: 'flex',
               flexDirection: 'column',
