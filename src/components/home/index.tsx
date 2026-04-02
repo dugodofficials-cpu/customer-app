@@ -19,15 +19,12 @@ export default function HomeComponent({ initialTimeLeft }: { initialTimeLeft: st
   const { isAuthenticated } = useAuth();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isShortScreen = useMediaQuery('(max-height: 667px)'); // iPhone SE height
-  const { data } = useCountdown();
+  const { data, isError } = useCountdown();
   const [timeLeft, setTimeLeft] = useState<string>(initialTimeLeft);
-  const [isCountdownComplete, setIsCountdownComplete] = useState<boolean>(false);
 
   const countdown = data?.data;
 
   const handleEnterField = () => {
-    if (!isCountdownComplete) return;
-
     const nextPath = typeof window !== 'undefined' ? window.sessionStorage.getItem('bb_next') : null;
     if (nextPath) {
       if (isAuthenticated) {
@@ -39,14 +36,20 @@ export default function HomeComponent({ initialTimeLeft }: { initialTimeLeft: st
       return;
     }
 
-    router.push(ROUTES.AUTH.SIGN_UP);
+    // Fallback to /shop if no nextPath
+    router.push(ROUTES.SHOP.HOME);
   };
 
   useEffect(() => {
-    if (countdown === null) {
-      setIsCountdownComplete(true);
+    // Fail open if countdown endpoint is unavailable, so entry button still works.
+    if (isError) {
+      setTimeLeft('00:00:00');
+      return;
     }
-    if (!countdown?.launchDate) return;
+
+    if (countdown === null || !countdown?.launchDate) {
+      return;
+    }
 
     const futureTime = new Date(countdown.launchDate).getTime();
 
@@ -56,7 +59,6 @@ export default function HomeComponent({ initialTimeLeft }: { initialTimeLeft: st
 
       if (difference <= 0) {
         setTimeLeft('00:00:00');
-        setIsCountdownComplete(true);
         return;
       }
 
@@ -78,7 +80,7 @@ export default function HomeComponent({ initialTimeLeft }: { initialTimeLeft: st
     const interval = setInterval(updateCountdown, 1000);
 
     return () => clearInterval(interval);
-  }, [countdown, router]);
+  }, [countdown, isError, router]);
 
   return (
     <Grid
@@ -167,7 +169,6 @@ export default function HomeComponent({ initialTimeLeft }: { initialTimeLeft: st
             startIcon={<Image src={lockIcon} alt="lock" width={20} height={20} />}
             variant="contained"
             color="primary"
-            disabled={!isCountdownComplete}
             sx={{
               fontFamily: 'manrope',
               fontSize: '1rem',
