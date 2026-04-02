@@ -8,7 +8,7 @@ import { Box, Dialog, DialogContent, Grid, IconButton, Typography } from '@mui/m
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useSnackbar } from 'notistack';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import SectionBg from '../../../../public/assets/section-bg.png';
 import Footer from '../../layout/footer';
 import ProductOptions from '../../ui/product-options';
@@ -28,7 +28,13 @@ export default function ShopItem() {
   const { mutate: addToCart, isPending } = useAddToCart();
   const { data: cart } = useCart();
   const [isImageOpen, setIsImageOpen] = useState(false);
+  const fallbackImage = '/assets/product-placeholder.svg';
+  const [mainImageSrc, setMainImageSrc] = useState(fallbackImage);
   const isEbook = product?.data.type === ProductType.EBOOK;
+
+  useEffect(() => {
+    setMainImageSrc(product?.data.images[0] || fallbackImage);
+  }, [product?.data.images]);
 
   const isInCart = cart?.data.items.find(
     (item) =>
@@ -169,10 +175,11 @@ export default function ShopItem() {
                 aria-label="Open product image"
               >
                 <Image
-                  src={product?.data.images[0] || '/assets/product-placeholder.svg'}
+                  src={mainImageSrc}
                   alt="product"
                   fill
                   objectFit="cover"
+                  onError={() => setMainImageSrc(fallbackImage)}
                 />
               </Box>
               <Dialog
@@ -216,11 +223,12 @@ export default function ShopItem() {
                     }}
                   >
                     <Image
-                      src={product?.data.images[0] || '/assets/product-placeholder.svg'}
+                      src={mainImageSrc}
                       alt="product enlarged"
                       fill
                       style={{ objectFit: 'contain' }}
                       priority
+                      onError={() => setMainImageSrc(fallbackImage)}
                     />
                   </Box>
                 </DialogContent>

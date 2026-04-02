@@ -10,6 +10,20 @@ export default function LandingPage() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const router = useRouter();
+  const featuredVideos = [
+    {
+      title: 'BLACK BOX GAME PLAY',
+      embedUrl: 'https://www.youtube.com/embed/ScNzr-ha74I',
+    },
+    {
+      title: 'MOP STORY',
+      embedUrl: 'https://www.youtube.com/embed/0xhhqtLTWfU',
+    },
+    {
+      title: 'GOD MUZIK STORY',
+      embedUrl: 'https://www.youtube.com/embed/ALac8rT9qOo',
+    },
+  ];
   return (
     <Box sx={{
       padding: { xs: '1rem', sm: 0 },
@@ -109,7 +123,7 @@ export default function LandingPage() {
             variant="h6"
             sx={{
               color: '#C4C4C4',
-              maxWidth: '800px',
+              maxWidth: '600px',
               mx: 'auto',
               mb: { xs: 2, sm: 3, md: 4 },
               fontFamily: 'Satoshi-Bold',
@@ -131,69 +145,57 @@ export default function LandingPage() {
           <Box
             sx={{
               width: '100%',
-              maxWidth: '800px',
+              maxWidth: '600px',
               mx: 'auto',
               display: 'flex',
               flexDirection: 'column',
-              gap: 3,
-              mb: { xs: 3, sm: 4, md: 6 },
+              gap: 2,
+              mb: { xs: 2, sm: 3, md: 4 },
             }}
           >
-            <Box
-              sx={{
-                width: '100%',
-                borderRadius: '0.75rem',
-                overflow: 'hidden',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                backgroundColor: 'rgba(255, 255, 255, 0.04)',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
-              }}
-            >
-              <Box sx={{ position: 'relative', width: '100%', paddingTop: '56.25%' }}>
-                <Box
-                  component="iframe"
-                  src="https://www.youtube.com/embed/VIDEO_ID_1"
-                  title="Music Player 1"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
+            {featuredVideos.map((video) => (
+              <Box
+                key={video.title}
+                sx={{
+                  borderRadius: '0.75rem',
+                  overflow: 'hidden',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                }}
+              >
+                <Typography
                   sx={{
-                    position: 'absolute',
-                    inset: 0,
-                    width: '100%',
-                    height: '100%',
-                    border: 0,
+                    color: '#FFF',
+                    textAlign: 'left',
+                    fontFamily: 'Satoshi-Bold',
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                    letterSpacing: '0.08em',
+                    px: 1.5,
+                    py: 1,
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
+                    backgroundColor: 'rgba(0, 0, 0, 0.6)',
                   }}
-                />
+                >
+                  {video.title}
+                </Typography>
+                <Box sx={{ position: 'relative', width: '100%', paddingTop: '56.25%' }}>
+                  <Box
+                    component="iframe"
+                    src={video.embedUrl}
+                    title={video.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    sx={{
+                      position: 'absolute',
+                      inset: 0,
+                      width: '100%',
+                      height: '100%',
+                      border: 0,
+                    }}
+                  />
+                </Box>
               </Box>
-            </Box>
-
-            <Box
-              sx={{
-                width: '100%',
-                borderRadius: '0.75rem',
-                overflow: 'hidden',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                backgroundColor: 'rgba(255, 255, 255, 0.04)',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
-              }}
-            >
-              <Box sx={{ position: 'relative', width: '100%', paddingTop: '56.25%' }}>
-                <Box
-                  component="iframe"
-                  src="https://www.youtube.com/embed/VIDEO_ID_2"
-                  title="Music Player 2"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                  sx={{
-                    position: 'absolute',
-                    inset: 0,
-                    width: '100%',
-                    height: '100%',
-                    border: 0,
-                  }}
-                />
-              </Box>
-            </Box>
+            ))}
           </Box>
         </Box>
 

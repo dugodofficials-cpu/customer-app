@@ -36,6 +36,14 @@ type Particle = {
 
 export default function LandingPage() {
   const router = useRouter();
+  const ticketProductId = process.env.NEXT_PUBLIC_GAME_TICKET_PRODUCT_ID;
+  const albumProductId = process.env.NEXT_PUBLIC_ALBUM_BUNDLE_PRODUCT_ID;
+  const ticketPath = ticketProductId
+    ? ROUTES.SHOP.DETAILS.replace(':id', ticketProductId)
+    : ROUTES.SHOP.HOME;
+  const albumPath = albumProductId
+    ? ROUTES.SHOP.DETAILS.replace(':id', albumProductId)
+    : ROUTES.SHOP.HOME;
 
   const particles = useMemo<Particle[]>(() => {
     return Array.from({ length: 40 }).map(() => ({
@@ -138,7 +146,7 @@ export default function LandingPage() {
             Decode the clues. Follow the sound. Uncover what lies beneath.
           </p>
           <div className="hero-buttons">
-            <button type="button" className="btn btn-gold" onClick={() => startEnterFieldFlow(ROUTES.SHOP.HOME)}>
+            <button type="button" className="btn btn-gold" onClick={() => startEnterFieldFlow(ticketPath)}>
               Get Your Ticket
             </button>
             <a href="#what" className="btn btn-outline">
@@ -237,7 +245,7 @@ export default function LandingPage() {
               <li>Leaderboard &amp; progress tracking</li>
               <li>Community access — collaborate or compete</li>
             </ul>
-            <button type="button" className="btn btn-outline btn-full" onClick={() => startEnterFieldFlow(ROUTES.SHOP.HOME)}>
+            <button type="button" className="btn btn-outline btn-full" onClick={() => startEnterFieldFlow(ticketPath)}>
               Buy Ticket
             </button>
           </div>
@@ -255,7 +263,7 @@ export default function LandingPage() {
               <li>Exclusive album-only puzzle layers</li>
               <li>Priority access &amp; early chapter unlocks</li>
             </ul>
-            <button type="button" className="btn btn-gold btn-full" onClick={() => startEnterFieldFlow(ROUTES.SHOP.HOME)}>
+            <button type="button" className="btn btn-gold btn-full" onClick={() => startEnterFieldFlow(albumPath)}>
               Get the Album
             </button>
           </div>
@@ -426,10 +434,10 @@ export default function LandingPage() {
 
         .hero-title {
           font-family: ${cinzelDecorative.style.fontFamily};
-          font-size: clamp(2.5rem, 8vw, 4.5rem);
-          font-weight: 700;
-          line-height: 1.1;
-          letter-spacing: -0.01em;
+          font-size: clamp(4rem, 12vw, 9rem);
+          font-weight: 900;
+          line-height: 0.9;
+          letter-spacing: -0.02em;
           color: var(--text);
           position: relative;
           margin-bottom: 0.2em;

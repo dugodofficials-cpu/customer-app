@@ -4,6 +4,7 @@ import { ROUTES } from '@/util/paths';
 import { Box, Typography, useMediaQuery, useTheme } from '@mui/material';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 interface AlbumCardProps {
   id: string;
@@ -25,6 +26,12 @@ export default function ProductCard({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const router = useRouter();
+  const fallbackImage = '/assets/product-placeholder.svg';
+  const [imageSrc, setImageSrc] = useState(productImage || fallbackImage);
+
+  useEffect(() => {
+    setImageSrc(productImage || fallbackImage);
+  }, [productImage]);
   const handleClick = () => {
     if (isOutOfStock) return;
     router.push(ROUTES.SHOP.DETAILS.replace(':id', id));
@@ -55,10 +62,11 @@ export default function ProductCard({
         }}
       >
         <Image
-          src={productImage || '/assets/product-placeholder.svg'}
+          src={imageSrc}
           alt={productName}
           fill
           objectFit={isMobile ? 'cover' : 'contain'}
+          onError={() => setImageSrc(fallbackImage)}
         />
       </Box>
       <Typography

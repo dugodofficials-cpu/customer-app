@@ -36,8 +36,8 @@ export default function HomeComponent({ initialTimeLeft }: { initialTimeLeft: st
       return;
     }
 
-    // Fallback to /shop if no nextPath
-    router.push(ROUTES.SHOP.HOME);
+    // Default flow from normal entry goes to the main home experience.
+    router.push(ROUTES.USER.HOME);
   };
 
   useEffect(() => {
