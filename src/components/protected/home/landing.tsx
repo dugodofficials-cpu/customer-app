@@ -21,7 +21,7 @@ export default function LandingPage() {
     },
     {
       title: 'GOD MUZIK STORY',
-      embedUrl: 'https://www.youtube.com/embed/ALac8rT9qOo',
+      embedUrl: 'https://www.youtube.com/embed/fJR4bVWnOvk',
     },
   ];
   return (

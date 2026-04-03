@@ -4,6 +4,7 @@ import { useEffect, useMemo, type CSSProperties } from 'react';
 import { Cinzel, Cinzel_Decorative, Crimson_Pro } from 'next/font/google';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/util/paths';
+import { useAuth } from '@/hooks/use-auth';
 
 type ParticleStyle = CSSProperties & {
   ['--drift']?: string;
@@ -36,6 +37,7 @@ type Particle = {
 
 export default function LandingPage() {
   const router = useRouter();
+  const { isAuthenticated } = useAuth();
   const ticketProductId = process.env.NEXT_PUBLIC_GAME_TICKET_PRODUCT_ID;
   const albumProductId = process.env.NEXT_PUBLIC_ALBUM_BUNDLE_PRODUCT_ID;
   const ticketPath = ticketProductId
@@ -60,7 +62,13 @@ export default function LandingPage() {
     if (typeof window !== 'undefined') {
       window.sessionStorage.setItem('bb_next', nextPath);
     }
-    router.push(ROUTES.HOME);
+    // If authenticated, go directly to the destination
+    if (isAuthenticated) {
+      router.push(nextPath);
+      return;
+    }
+    // Otherwise, go to sign up (auth success will redirect to bb_next)
+    router.push(ROUTES.AUTH.SIGN_UP);
   };
 
   useEffect(() => {
