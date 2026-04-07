@@ -3,6 +3,7 @@
 import { useEffect, useMemo, type CSSProperties } from 'react';
 import { Cinzel, Cinzel_Decorative, Crimson_Pro } from 'next/font/google';
 import { useRouter } from 'next/navigation';
+import Script from 'next/script';
 import { ROUTES } from '@/util/paths';
 import { useAuth } from '@/hooks/use-auth';
 
@@ -35,9 +36,12 @@ type Particle = {
   opacity: number;
 };
 
+const META_PIXEL_ID = '2420198768440677';
+
 export default function LandingPage() {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
+  const metaPixelId = META_PIXEL_ID;
   const ticketProductId = process.env.NEXT_PUBLIC_GAME_TICKET_PRODUCT_ID;
   const albumProductId = process.env.NEXT_PUBLIC_ALBUM_BUNDLE_PRODUCT_ID;
   const ticketPath = ticketProductId
@@ -71,6 +75,15 @@ export default function LandingPage() {
     router.push(ROUTES.AUTH.SIGN_UP);
   };
 
+  const trackTicketClick = (placement: string) => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const fbq = (window as Window & { fbq?: (...args: unknown[]) => void }).fbq;
+    fbq?.('trackCustom', 'GetYourTicketClick', { placement });
+  };
+
   useEffect(() => {
     const els = Array.from(document.querySelectorAll('.bb-root .reveal'));
     const observer = new IntersectionObserver(
@@ -93,6 +106,32 @@ export default function LandingPage() {
 
   return (
     <div className={`bb-root ${crimsonPro.className} ${cinzel.className} ${cinzelDecorative.className}`}>
+      {metaPixelId ? (
+        <>
+          <Script id="meta-pixel" strategy="afterInteractive">
+            {`!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', ${JSON.stringify(metaPixelId)});
+fbq('track', 'PageView');`}
+          </Script>
+          <noscript>
+            <img
+              height="1"
+              width="1"
+              style={{ display: 'none' }}
+              src={`https://www.facebook.com/tr?id=${metaPixelId}&ev=PageView&noscript=1`}
+              alt=""
+            />
+          </noscript>
+        </>
+      ) : null}
+
       <div className="announce">
         <span className="announce-inner">
           ◈ &nbsp; THE BOX OPENS ONCE. ENTER AT YOUR OWN RISK. &nbsp; ◈ &nbsp; WHOEVER SEES THE CONTENT OF THE BOX CANNOT LEAVE THE FIELD. &nbsp; ◈ &nbsp; ONLY THE CHOSEN FEW WILL UNLOCK WHAT LIES BENEATH &nbsp; ◈ &nbsp; THE BOX OPENS ONCE. ENTER AT YOUR OWN RISK. &nbsp; ◈
@@ -154,7 +193,14 @@ export default function LandingPage() {
             Decode the clues. Follow the sound. Uncover what lies beneath.
           </p>
           <div className="hero-buttons">
-            <button type="button" className="btn btn-gold" onClick={() => startEnterFieldFlow(ticketPath)}>
+            <button
+              type="button"
+              className="btn btn-gold"
+              onClick={() => {
+                trackTicketClick('hero');
+                startEnterFieldFlow(ticketPath);
+              }}
+            >
               Get Your Ticket
             </button>
             <a href="#what" className="btn btn-outline">
@@ -253,7 +299,14 @@ export default function LandingPage() {
               <li>Leaderboard &amp; progress tracking</li>
               <li>Community access — collaborate or compete</li>
             </ul>
-            <button type="button" className="btn btn-outline btn-full" onClick={() => startEnterFieldFlow(ticketPath)}>
+            <button
+              type="button"
+              className="btn btn-outline btn-full"
+              onClick={() => {
+                trackTicketClick('ticket-card');
+                startEnterFieldFlow(ticketPath);
+              }}
+            >
               Buy Ticket
             </button>
           </div>
