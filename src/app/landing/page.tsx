@@ -3,9 +3,9 @@
 import { useEffect, useMemo, type CSSProperties } from 'react';
 import { Cinzel, Cinzel_Decorative, Crimson_Pro } from 'next/font/google';
 import { useRouter } from 'next/navigation';
+import { META_PIXEL_ID } from '@/app/meta-pixel';
 import { ROUTES } from '@/util/paths';
 import { useAuth } from '@/hooks/use-auth';
-import { META_PIXEL_ID } from './meta-pixel';
 
 type ParticleStyle = CSSProperties & {
   ['--drift']?: string;
