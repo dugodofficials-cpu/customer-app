@@ -1,5 +1,4 @@
-import Script from 'next/script';
-import { META_PIXEL_BOOTSTRAP_SCRIPT, META_PIXEL_ID } from './meta-pixel';
+import { META_PIXEL_ID } from './meta-pixel';
 
 export default function LandingLayout({
   children,
@@ -8,9 +7,6 @@ export default function LandingLayout({
 }>) {
   return (
     <>
-      <Script id="meta-pixel-base" strategy="beforeInteractive">
-        {META_PIXEL_BOOTSTRAP_SCRIPT}
-      </Script>
       <noscript>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
