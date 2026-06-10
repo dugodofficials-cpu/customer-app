@@ -18,11 +18,15 @@ import {
 import Image from 'next/image';
 import { useSnackbar } from 'notistack';
 import { Controller, useForm } from 'react-hook-form';
+import { useState, useRef } from 'react';
+import { apiClient } from '@/lib/api/client';
 
 export default function Account() {
   const { enqueueSnackbar } = useSnackbar();
   const { user, updateUser } = useUser();
   const logoutMutation = useLogout();
+  const [uploadingPicture, setUploadingPicture] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
@@ -63,6 +67,48 @@ export default function Account() {
     } catch (err) {
       console.error('Error saving shipping details:', err);
       enqueueSnackbar('Failed to save shipping details. Please try again.', { variant: 'error' });
+    }
+  };
+
+  const handleProfilePictureUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      enqueueSnackbar('File size must be less than 5MB', { variant: 'error' });
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      enqueueSnackbar('Only image files are allowed', { variant: 'error' });
+      return;
+    }
+
+    setUploadingPicture(true);
+    try {
+      const formData = new FormData();
+      formData.append('profilePicture', file);
+
+      const response = await apiClient<{ data: { picture: string } }>(
+        `users/${user?._id}/profile-picture`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
+
+      // Update user data with new picture
+      await updateUser.mutateAsync({
+        _id: user?._id || '',
+        picture: response.data.picture,
+      });
+
+      enqueueSnackbar('Profile picture updated successfully', { variant: 'success' });
+    } catch (err) {
+      console.error('Error uploading profile picture:', err);
+      enqueueSnackbar('Failed to upload profile picture. Please try again.', { variant: 'error' });
+    } finally {
+      setUploadingPicture(false);
     }
   };
 
@@ -122,6 +168,92 @@ export default function Account() {
       >
         Account Details
       </Typography>
+
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 3,
+          marginBottom: 3,
+        }}
+      >
+        <Box
+          sx={{
+            width: '120px',
+            height: '120px',
+            borderRadius: '50%',
+            overflow: 'hidden',
+            border: '2px solid #0B6201',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#222',
+          }}
+        >
+          {user?.picture ? (
+            <Image
+              src={user.picture}
+              alt="Profile"
+              width={120}
+              height={120}
+              style={{ objectFit: 'cover' }}
+            />
+          ) : (
+            <Image
+              src="/assets/user.svg"
+              alt="Default Profile"
+              width={60}
+              height={60}
+            />
+          )}
+        </Box>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 1,
+          }}
+        >
+          <Button
+            variant="contained"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadingPicture}
+            sx={{
+              backgroundColor: '#0B6201',
+              color: '#FFF',
+              padding: '0.5rem 1.5rem',
+              borderRadius: '0.5rem',
+              fontFamily: 'Satoshi',
+              textTransform: 'none',
+              '&:hover': {
+                backgroundColor: 'rgba(42, 195, 24, 0.32)',
+              },
+              '&.Mui-disabled': {
+                backgroundColor: 'rgba(11, 98, 1, 0.3)',
+                color: '#666',
+              },
+            }}
+          >
+            {uploadingPicture ? 'Uploading...' : 'Change Profile Picture'}
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleProfilePictureUpload}
+            style={{ display: 'none' }}
+          />
+          <Typography
+            variant="caption"
+            sx={{
+              color: '#7B7B7B',
+              fontFamily: 'Satoshi',
+            }}
+          >
+            JPG, PNG or GIF. Max size 5MB
+          </Typography>
+        </Box>
+      </Box>
 
       <Box
         sx={{

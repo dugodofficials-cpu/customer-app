@@ -74,7 +74,25 @@ export default function Navbar({ trigger }: { trigger: boolean }) {
       onClick: openCart,
     },
     {
-      icon: <Image src={'/assets/user.svg'} alt="User" width={40} height={40} />,
+      icon: user?.picture ? (
+        <Avatar
+          sx={{
+            bgcolor: 'transparent',
+            width: 40,
+            height: 40,
+          }}
+        >
+          <Image
+            src={user.picture}
+            alt="User"
+            width={40}
+            height={40}
+            style={{ borderRadius: '50%' }}
+          />
+        </Avatar>
+      ) : (
+        <Image src={'/assets/user.svg'} alt="User" width={40} height={40} />
+      ),
       href: ROUTES.USER.PROFILE,
     },
   ];
