@@ -289,7 +289,6 @@ export default function Shop() {
             },
           }}
         >
-          Official DuGod WEDAR 🛍️ Style the vibe.
         </Typography>
       </Box>
       <Box

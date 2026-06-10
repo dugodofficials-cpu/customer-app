@@ -3,7 +3,9 @@
 import { useEffect, useMemo, type CSSProperties } from 'react';
 import { Cinzel, Cinzel_Decorative, Crimson_Pro } from 'next/font/google';
 import { useRouter } from 'next/navigation';
+import { META_PIXEL_ID } from '@/app/meta-pixel';
 import { ROUTES } from '@/util/paths';
+import { useAuth } from '@/hooks/use-auth';
 
 type ParticleStyle = CSSProperties & {
   ['--drift']?: string;
@@ -36,6 +38,7 @@ type Particle = {
 
 export default function LandingPage() {
   const router = useRouter();
+  const { isAuthenticated } = useAuth();
   const ticketProductId = process.env.NEXT_PUBLIC_GAME_TICKET_PRODUCT_ID;
   const albumProductId = process.env.NEXT_PUBLIC_ALBUM_BUNDLE_PRODUCT_ID;
   const ticketPath = ticketProductId
@@ -60,7 +63,22 @@ export default function LandingPage() {
     if (typeof window !== 'undefined') {
       window.sessionStorage.setItem('bb_next', nextPath);
     }
-    router.push(ROUTES.HOME);
+    // If authenticated, go directly to the destination
+    if (isAuthenticated) {
+      router.push(nextPath);
+      return;
+    }
+    // Otherwise, go to sign up (auth success will redirect to bb_next)
+    router.push(ROUTES.AUTH.SIGN_UP);
+  };
+
+  const trackTicketClick = (placement: string) => {
+    if (!META_PIXEL_ID || typeof window === 'undefined') {
+      return;
+    }
+
+    const fbq = (window as Window & { fbq?: (...args: unknown[]) => void }).fbq;
+    fbq?.('trackCustom', 'GetYourTicketClick', { placement });
   };
 
   useEffect(() => {
@@ -146,7 +164,14 @@ export default function LandingPage() {
             Decode the clues. Follow the sound. Uncover what lies beneath.
           </p>
           <div className="hero-buttons">
-            <button type="button" className="btn btn-gold" onClick={() => startEnterFieldFlow(ticketPath)}>
+            <button
+              type="button"
+              className="btn btn-gold"
+              onClick={() => {
+                trackTicketClick('hero');
+                startEnterFieldFlow(ticketPath);
+              }}
+            >
               Get Your Ticket
             </button>
             <a href="#what" className="btn btn-outline">
@@ -245,7 +270,14 @@ export default function LandingPage() {
               <li>Leaderboard &amp; progress tracking</li>
               <li>Community access — collaborate or compete</li>
             </ul>
-            <button type="button" className="btn btn-outline btn-full" onClick={() => startEnterFieldFlow(ticketPath)}>
+            <button
+              type="button"
+              className="btn btn-outline btn-full"
+              onClick={() => {
+                trackTicketClick('ticket-card');
+                startEnterFieldFlow(ticketPath);
+              }}
+            >
               Buy Ticket
             </button>
           </div>

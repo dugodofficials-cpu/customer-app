@@ -126,7 +126,6 @@ export default function ShopItem() {
             },
           }}
         >
-          Official DuGod WEDAR 🛍️ Style the vibe.
         </Typography>
       </Box>
       <Box
