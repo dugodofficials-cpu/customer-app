@@ -16,9 +16,6 @@ function buildRequestUrl(endpoint: string): string {
 }
 
 const axiosInstance = axios.create({
-  headers: {
-    'Content-Type': 'application/json',
-  },
   withCredentials: true,
 });
 
@@ -49,10 +46,16 @@ axiosInstance.interceptors.response.use(
 export async function apiClient<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
   const { method = 'GET', headers = {}, body } = options;
 
+  const requestHeaders = { ...headers };
+
+  if (typeof FormData !== 'undefined' && body instanceof FormData) {
+    delete requestHeaders['Content-Type'];
+  }
+
   const response = await axiosInstance.request<T>({
     url: buildRequestUrl(endpoint),
     method,
-    headers,
+    headers: requestHeaders,
     data: body,
   });
 
